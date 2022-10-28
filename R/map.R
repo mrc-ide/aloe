@@ -13,6 +13,12 @@ base_map <- function(spatial){
   })
 }
 
+#' Render a polygon fill overlay
+#'
+#' Current fixed to render NAME_1 level
+#'
+#' @param data sf data
+#' @param colour Fill colour
 overlap_map <- function(data, colour){
   leaflet::leafletProxy("mymap") |>
     leaflet::addPolygons(data = data, stroke = TRUE, smoothFactor = 0.2,
