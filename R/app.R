@@ -21,9 +21,24 @@ app <- function(){
 
   ui <- shiny::fluidPage(
     shiny::fluidRow(
-      shiny::column(8, leaflet::leafletOutput("mymap")),
-      shiny::column(4, shiny::plotOutput("impact_plot"))
+      shiny::column(8,
+                    shiny::tabsetPanel(
+                      shiny::tabPanel("ITNs",
+                                      leaflet::leafletOutput("mymap")
+                      ),
+                      shiny::tabPanel("SMC",
+                                      leaflet::leafletOutput("mymap2")
+                      )
+                    )),
+      shiny::column(4,
+                    shiny::tabsetPanel(
+                      shiny::tabPanel("Outcome",
+                                      shiny::plotOutput("impact_plot")
+                      )
+                    )
+      )
     ),
+
     shiny::fluidRow(
       shiny::sliderInput("budget" ,"Budget", value = 10000, min = min_needed, max = max_needed),
       shiny::actionButton("opt_cases", "Show Optimum (Cases)"),
@@ -46,13 +61,8 @@ app <- function(){
     rv$optimised_deaths <- NULL
 
     # Define the basemap
-    output$mymap <- leaflet::renderLeaflet({
-      leaflet::leaflet() |>
-        leaflet::addTiles() |>
-        leaflet::addPolygons(data = mwi, stroke = TRUE, smoothFactor = 0.2,
-                             opacity = 1, fill = TRUE, weight = 1,
-                             color = "black", layerId = ~ NAME_1)
-    })
+    output$mymap <- base_map(mwi)
+    output$mymap2 <- base_map(mwi)
 
     # Budget optimisation
     shiny::observeEvent(input$budget,{
@@ -76,33 +86,26 @@ app <- function(){
 
     # On selection assign predefined optimum
     shiny::observeEvent(input$opt_cases, {
-      rv$selection <- cases_select()
       rv$clicked <- cases_select()
       rv$colour <- "deeppink"
-      proxy <- leaflet::leafletProxy("mymap") |>
-        leaflet::addPolygons(data = mwi, stroke = TRUE, smoothFactor = 0.2,
-                             opacity = 1, fill = TRUE, weight = 1,
-                             color = "black", layerId = ~ NAME_1)
+      overlap_map(data = unmap(), colour = "black")
+      rv$selection <- cases_select()
     })
     # On selection assign predefined optimum
     shiny::observeEvent(input$opt_deaths, {
-      rv$selection <- deaths_select()
       rv$clicked <- deaths_select()
       rv$colour <- "deeppink"
-      proxy <- leaflet::leafletProxy("mymap") |>
-        leaflet::addPolygons(data = mwi, stroke = TRUE, smoothFactor = 0.2,
-                             opacity = 1, fill = TRUE, weight = 1,
-                             color = "black", layerId = ~ NAME_1)
+      overlap_map(data = unmap(), colour = "black")
+      rv$selection <- deaths_select()
     })
     # On selection assign predefined current
     shiny::observeEvent(input$cur, {
       rv$selection <- current_selection
       rv$clicked <- current_selection
       rv$colour <- "deeppink"
-      proxy <- leaflet::leafletProxy("mymap") |>
-        leaflet::addPolygons(data = mwi, stroke = TRUE, smoothFactor = 0.2,
-                             opacity = 1, fill = TRUE, weight = 1,
-                             color = "black", layerId = ~ NAME_1)
+
+      # Clear the map
+      overlap_map(data = unmap(), colour = "black")
     })
 
     # On map click assign the clicked admin unit
@@ -110,6 +113,7 @@ app <- function(){
       rv$clicked <- input$mymap_shape_click$id
       # Selecting or deselecting a polygon
       if(input$mymap_shape_click$id %in% rv$selection){
+        broswer()
         rv$colour <- "black"
         rv$selection <- setdiff(rv$selection, input$mymap_shape_click$id)
       } else {
@@ -122,12 +126,12 @@ app <- function(){
     map <- shiny::reactive({
       dplyr::filter(mwi, NAME_1 %in% rv$clicked)
     })
+    unmap <- shiny::reactive({
+      dplyr::filter(mwi, NAME_1 %in% rv$selection)
+    })
 
     shiny::observe({
-      proxy <- leaflet::leafletProxy("mymap") |>
-        leaflet::addPolygons(data = map(), stroke = TRUE, smoothFactor = 0.2,
-                             opacity = 1, fill = TRUE, weight = 1,
-                             color = rv$colour, layerId = ~ NAME_1)
+      overlap_map(data = map(), colour = rv$colour)
     })
 
     cases_averted <- shiny::reactive({
