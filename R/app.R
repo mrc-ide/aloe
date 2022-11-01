@@ -6,28 +6,18 @@ app <- function(){
   cases_averted_matrix <- mat(df$NAME_1, df$cases_averted)
   deaths_averted_matrix <- mat(df$NAME_1, df$deaths_averted)
   current_selection <- setdiff(mwi$NAME_1, c("Balaka", "Ntchisi", "Phalombe", "Rumphi"))
-  max_needed <- df |>
-    dplyr::group_by(NAME_1) |>
-    dplyr::slice_max(order_by = cost, n = 1, with_ties = FALSE) |>
-    dplyr::ungroup() |>
-    dplyr::pull(cost) |>
-    sum()
-  min_needed <- df |>
-    dplyr::group_by(NAME_1) |>
-    dplyr::slice_min(order_by = cost, n = 1, with_ties = FALSE) |>
-    dplyr::ungroup() |>
-    dplyr::pull(cost) |>
-    sum()
+  max_needed <- sum(apply(cost_matrix, 1, max))
+  min_needed <- sum(apply(cost_matrix, 1, min))
 
-  ui <- shiny::fluidPage(
+  ui <- shiny::fluidPage(theme = shinythemes::shinytheme("slate"),
     shiny::fluidRow(
       shiny::column(8,
                     shiny::tabsetPanel(
                       shiny::tabPanel("ITNs",
-                                      leaflet::leafletOutput("mymap")
+                                      leaflet::leafletOutput("mymap_itn")
                       ),
-                      shiny::tabPanel("SMC",
-                                      leaflet::leafletOutput("mymap2")
+                      shiny::tabPanel("IRS",
+                                      leaflet::leafletOutput("mymap_irs")
                       )
                     )),
       shiny::column(4,
@@ -40,128 +30,180 @@ app <- function(){
     ),
 
     shiny::fluidRow(
-      shiny::sliderInput("budget" ,"Budget", value = 10000, min = min_needed, max = max_needed),
+      shiny::numericInput("budget" ,"Budget", value = max_needed, min = min_needed, max = max_needed),
       shiny::actionButton("opt_cases", "Show Optimum (Cases)"),
       shiny::actionButton("opt_deaths", "Show Optimum (Deaths)"),
       shiny::actionButton("cur", "Show Current"),
       shiny::htmlOutput("impact")
-    ),
-    shiny::fluidRow(
-      shiny::htmlOutput("selected")
     )
   )
 
   server <- function(input, output, session) {
     rv <- shiny::reactiveValues()
-    rv$selection <- NULL
-    rv$clicked <- NULL
+    rv$selection_itn <- NULL
+    rv$clicked_itn <- NULL
+    rv$colour_itn <- NULL
+    rv$selection_irs <- NULL
+    rv$clicked_irs <- NULL
+    rv$colour_irs <- NULL
+
     rv$colour <- NULL
     rv$budget <- NULL
     rv$optimised_cases <- NULL
     rv$optimised_deaths <- NULL
 
-    # Define the basemap
-    output$mymap <- base_map(mwi)
-    output$mymap2 <- base_map(mwi)
+    # Define the basemaps
+    output$mymap_itn <- base_map(mwi)
+    outputOptions(output, "mymap_itn", suspendWhenHidden = FALSE)
+    output$mymap_irs <- base_map(mwi)
+    outputOptions(output, "mymap_irs", suspendWhenHidden = FALSE)
 
     # Budget optimisation
     shiny::observeEvent(input$budget,{
       rv$budget <- input$budget
-      rv$optimised_cases <- om::om(z = cases_averted_matrix, cost = cost_matrix, budget = input$budget)
-      rv$optimised_deaths <- om::om(z = deaths_averted_matrix, cost = cost_matrix, budget = input$budget)
+      rv$optimised_cases <- om::om(z = cases_averted_matrix, cost = cost_matrix, budget = input$budget) |>
+        as.data.frame() |>
+        dplyr::select(i, j) |>
+        dplyr::left_join(df, by = c("i", "j"))
+      rv$optimised_deaths <- om::om(z = deaths_averted_matrix, cost = cost_matrix, budget = input$budget) |>
+        as.data.frame() |>
+        dplyr::left_join(df, by = c("i", "j"))
     })
 
-    cases_select <- shiny::reactive({
-      unique(df$NAME_1)[rv$optimised_cases[,2] == 2]
-    })
-    deaths_select <- shiny::reactive({
-      unique(df$NAME_1)[rv$optimised_deaths[,2] == 2]
-    })
     max_cases_averted <- shiny::reactive({
-      sum(rv$optimised_cases[,4])
+      sum(rv$optimised_cases$z)
     })
     max_deaths_averted <- shiny::reactive({
-      sum(rv$optimised_deaths[,4])
+      sum(rv$optimised_deaths$z)
+    })
+    cases_select_itn <- shiny::reactive({
+      rv$optimised_cases |>
+        dplyr::filter(itn == 1) |>
+        dplyr::pull(NAME_1)
+    })
+    deaths_select_itn <- shiny::reactive({
+      rv$optimised_deaths |>
+        dplyr::filter(itn == 1) |>
+        dplyr::pull(NAME_1)
+    })
+    cases_select_irs <- shiny::reactive({
+      rv$optimised_cases |>
+        dplyr::filter(irs == 1) |>
+        dplyr::pull(NAME_1)
+    })
+    deaths_select_irs <- shiny::reactive({
+      rv$optimised_deaths |>
+        dplyr::filter(irs == 1) |>
+        dplyr::pull(NAME_1)
     })
 
     # On selection assign predefined optimum
     shiny::observeEvent(input$opt_cases, {
-      rv$clicked <- cases_select()
-      rv$colour <- "deeppink"
-      overlap_map(data = unmap(), colour = "black")
-      rv$selection <- cases_select()
+      rv$clicked_itn <- cases_select_itn()
+      rv$colour_itn <- "deeppink"
+      overlap_map(leaflet::leafletProxy("mymap_itn"), data = unmap_itn(), colour = "black")
+      rv$selection_itn <- cases_select_itn()
+
+      rv$clicked_irs <- cases_select_irs()
+      rv$colour_irs <- "deeppink"
+      overlap_map(leaflet::leafletProxy("mymap_irs"), data = unmap_irs(), colour = "black")
+      rv$selection_irs <- cases_select_irs()
     })
+
     # On selection assign predefined optimum
     shiny::observeEvent(input$opt_deaths, {
-      rv$clicked <- deaths_select()
-      rv$colour <- "deeppink"
-      overlap_map(data = unmap(), colour = "black")
-      rv$selection <- deaths_select()
+      rv$clicked_itn <- deaths_select_itn()
+      rv$colour_itn <- "deeppink"
+      overlap_map(leaflet::leafletProxy("mymap_itn"), data = unmap_itn(), colour = "black")
+      rv$selection_itn <- deaths_select_itn()
+
+      rv$clicked_irs <- deaths_select_irs()
+      rv$colour_irs <- "deeppink"
+      overlap_map(leaflet::leafletProxy("mymap_irs"), data = unmap_irs(), colour = "black")
+      rv$selection_irs <- deaths_select_irs()
     })
     # On selection assign predefined current
     shiny::observeEvent(input$cur, {
-      rv$selection <- current_selection
-      rv$clicked <- current_selection
-      rv$colour <- "deeppink"
+      rv$selection_itn <- current_selection
+      rv$clicked_itn <- current_selection
+      rv$colour_itn <- "deeppink"
+
+      rv$selection_irs <- current_selection
+      rv$clicked_irs <- current_selection
+      rv$colour_irs <- "deeppink"
 
       # Clear the map
-      overlap_map(data = unmap(), colour = "black")
+      overlap_map(leaflet::leafletProxy("mymap_itn"), data = unmap_itn(), colour = "black")
+      overlap_map(leaflet::leafletProxy("mymap_irs"), data = unmap_irs(), colour = "black")
     })
 
     # On map click assign the clicked admin unit
-    shiny::observeEvent(input$mymap_shape_click, {
-      rv$clicked <- input$mymap_shape_click$id
+    shiny::observeEvent(input$mymap_itn_shape_click, {
+      rv$clicked_itn <- input$mymap_itn_shape_click$id
       # Selecting or deselecting a polygon
-      if(input$mymap_shape_click$id %in% rv$selection){
-        broswer()
-        rv$colour <- "black"
-        rv$selection <- setdiff(rv$selection, input$mymap_shape_click$id)
+      if(input$mymap_itn_shape_click$id %in% rv$selection_itn){
+        rv$colour_itn <- "black"
+        rv$selection_itn <- setdiff(rv$selection_itn, input$mymap_itn_shape_click$id)
       } else {
-        rv$selection <- c(rv$selection, input$mymap_shape_click$id)
-        rv$colour <- "deeppink"
+        rv$selection_itn <- c(rv$selection_itn, input$mymap_itn_shape_click$id)
+        rv$colour_itn <- "deeppink"
+      }
+    })
+    shiny::observeEvent(input$mymap_irs_shape_click, {
+      rv$clicked_irs <- input$mymap_irs_shape_click$id
+      # Selecting or deselecting a polygon
+      if(input$mymap_irs_shape_click$id %in% rv$selection_irs){
+        rv$colour_irs <- "black"
+        rv$selection_irs <- setdiff(rv$selection_irs, input$mymap_irs_shape_click$id)
+      } else {
+        rv$selection_irs <- c(rv$selection_irs, input$mymap_irs_shape_click$id)
+        rv$colour_irs <- "deeppink"
       }
     })
 
     # Get polygon(s) to modify
-    map <- shiny::reactive({
-      dplyr::filter(mwi, NAME_1 %in% rv$clicked)
+    map_itn <- shiny::reactive({
+      dplyr::filter(mwi, NAME_1 %in% rv$clicked_itn)
     })
-    unmap <- shiny::reactive({
-      dplyr::filter(mwi, NAME_1 %in% rv$selection)
+    unmap_itn <- shiny::reactive({
+      dplyr::filter(mwi, NAME_1 %in% rv$selection_itn)
     })
 
     shiny::observe({
-      overlap_map(data = map(), colour = rv$colour)
+      overlap_map(leaflet::leafletProxy("mymap_itn"), data = map_itn(), colour = rv$colour_itn)
+    })
+
+    map_irs <- shiny::reactive({
+      dplyr::filter(mwi, NAME_1 %in% rv$clicked_irs)
+    })
+    unmap_irs <- shiny::reactive({
+      dplyr::filter(mwi, NAME_1 %in% rv$selection_irs)
+    })
+
+    shiny::observe({
+      overlap_map(leaflet::leafletProxy("mymap_irs"), data = map_irs(), colour = rv$colour_irs)
+    })
+
+    selected_df <- shiny::reactive({
+      browser()
+      df_selection(df, rv$selection_itn, rv$selection_irs)
     })
 
     cases_averted <- shiny::reactive({
-      df |>
-        dplyr::filter((NAME_1 %in% rv$selection & itn == 1) |
-                        (!NAME_1 %in% rv$selection & itn == 0)) |>
-        dplyr::pull(cases_averted) |>
-        sum() |>
-        unlist()
+      sum(selected_df()$cases_averted)
     })
     cases_averted_pc <- shiny::reactive({
+      browser()
       round(100 * cases_averted() / max_cases_averted())
     })
     deaths_averted <- shiny::reactive({
-      df |>
-        dplyr::filter((NAME_1 %in% rv$selection & itn == 1) |
-                        (!NAME_1 %in% rv$selection & itn == 0)) |>
-        dplyr::pull(deaths_averted) |>
-        sum() |>
-        unlist()
+      sum(selected_df()$deaths_averted)
     })
     deaths_averted_pc <- shiny::reactive({
       round(100 * deaths_averted() / max_deaths_averted())
     })
     budget_spent <- shiny::reactive({
-      df |>
-        dplyr::filter((NAME_1 %in% rv$selection & itn == 1) |
-                        (!NAME_1 %in% rv$selection & itn == 0)) |>
-        dplyr::pull(cost) |>
-        sum()
+      sum(selected_df()$cost)
     })
     budget_spent_pc <- shiny::reactive({
       round(100 * budget_spent() / rv$budget)
@@ -185,11 +227,6 @@ app <- function(){
       }
       bp
     })
-
-    selected_names <- shiny::reactive({
-      paste("Selected areas:", paste(rv$selection, collapse = ", "))
-    })
-    output$selected <- shiny::renderUI(selected_names())
   }
 
   shiny::shinyApp(ui, server)

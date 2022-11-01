@@ -19,8 +19,8 @@ base_map <- function(spatial){
 #'
 #' @param data sf data
 #' @param colour Fill colour
-overlap_map <- function(data, colour){
-  leaflet::leafletProxy("mymap") |>
+overlap_map <- function(proxymap, data, colour){
+  proxymap |>
     leaflet::addPolygons(data = data, stroke = TRUE, smoothFactor = 0.2,
                          opacity = 1, fill = TRUE, weight = 1,
                          color = colour, layerId = ~ NAME_1)
