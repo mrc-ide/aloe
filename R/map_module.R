@@ -7,15 +7,20 @@ mapUI <- function(id){
 mapServer <- function(id){
   shiny::moduleServer(id, function(input, output, session){
     rv <- shiny::reactiveValues()
+    rv$selection <- NULL
     rv$clicked <- NULL
     rv$colour <- NULL
+
+    output$map <- base_map(mwi)
 
     shiny::observeEvent(input$map_shape_click, {
       rv$clicked <- input$map_shape_click$id
       # Selecting or deselecting a polygon
       if(rv$clicked %in% rv$selection){
-        rv$colour_itn <- "black"
+        rv$selection <- setdiff(rv$selection, rv$clicked)
+        rv$colour <- "black"
       } else {
+        rv$selection <- c(rv$selection, rv$clicked)
         rv$colour <- "deeppink"
       }
     })
@@ -25,7 +30,7 @@ mapServer <- function(id){
     })
 
     shiny::observe({
-      overlap_map(leaflet::leafletProxy("map"), data = map(), colour = rv$colour_itn)
+      overlap_map(leaflet::leafletProxy("map"), data = map(), colour = rv$colour)
     })
 
   })
