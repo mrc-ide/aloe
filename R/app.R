@@ -2,16 +2,15 @@ app <- function(){
 
   all <- unique(df$NAME_1)
   current <- sample(all, 3)
-  optim <- sample(all, 5)
+  optim <- list(
+    ITNs = sample(all, 10),
+    IRS = sample(all, 5)
+  )
 
   ui <- shiny::fluidPage(
     shiny::tabsetPanel(
-      shiny::tabPanel("ITNs",
-                      mapUI("ITNs")
-      ),
-      shiny::tabPanel("IRS",
-                      mapUI("IRS")
-      )
+      shiny::tabPanel("ITNs", mapUI("ITNs")),
+      shiny::tabPanel("IRS",  mapUI("IRS"))
     ),
     shiny::actionButton("select_optim", "Select optim")
   )

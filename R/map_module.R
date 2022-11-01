@@ -31,22 +31,23 @@ mapServer <- function(id, overwrite, trigger, all, current){
       }
     })
 
-    # Optimum choosen (from app)
+    # Select optimum (from app)
     shiny::observeEvent(trigger(), ignoreInit = TRUE,  {
-      rv$to_overwrite <- overwrite()
+      rv$to_overwrite <- overwrite()[[id]]
       rv$overwrite_trigger <- rv$overwrite_trigger + 1
     })
-    # All choosen
+    # Select all
     shiny::observeEvent(input$select_all, {
       rv$to_overwrite <- all
       rv$overwrite_trigger <- rv$overwrite_trigger + 1
     })
-    # Current choosen
+    # Select current
     shiny::observeEvent(input$select_current, {
       rv$to_overwrite <- current
       rv$overwrite_trigger <- rv$overwrite_trigger + 1
     })
 
+    # Overwrite event
     shiny::observeEvent(rv$overwrite_trigger, {
       # Clear anything not in the new selection
       to_clear <- dplyr::filter(mwi, NAME_1 %in% setdiff(rv$selection, rv$to_overwrite))
@@ -57,11 +58,10 @@ mapServer <- function(id, overwrite, trigger, all, current){
       # Update new selection
       rv$selection <- rv$to_overwrite
     })
-
+    # Update new highlighted polygons
     map <- shiny::reactive({
       dplyr::filter(mwi, NAME_1 %in% rv$clicked)
     })
-
     shiny::observe({
       overlap_map(leaflet::leafletProxy("map"), data = map(), colour = rv$colour)
     })
