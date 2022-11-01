@@ -13,6 +13,8 @@ base_map <- function(spatial){
   })
 }
 
+
+
 #' Render a polygon fill overlay
 #'
 #' Current fixed to render NAME_1 level
