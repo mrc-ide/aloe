@@ -13,9 +13,9 @@ mapServer <- function(id){
 
     output$map <- base_map(mwi)
 
+    # Selecting or deselecting a polygon
     shiny::observeEvent(input$map_shape_click, {
       rv$clicked <- input$map_shape_click$id
-      # Selecting or deselecting a polygon
       if(rv$clicked %in% rv$selection){
         rv$selection <- setdiff(rv$selection, rv$clicked)
         rv$colour <- "black"

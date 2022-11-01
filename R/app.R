@@ -1,12 +1,13 @@
 app <- function(){
-
-  ui <- shiny::fluidPage(theme = shinythemes::shinytheme("slate"),
-                         shiny::fluidRow(
-                           shiny::column(6, mapUI("ITNs"))
-                         ),
-                         shiny::fluidRow(
-                           shiny::column(6, mapUI("IRS"))
-                         )
+  ui <- shiny::fluidPage(
+    shiny::tabsetPanel(
+      shiny::tabPanel("ITNs",
+                      mapUI("ITNs")
+      ),
+      shiny::tabPanel("IRS",
+                      mapUI("IRS")
+      )
+    )
   )
 
   server <- function(input, output, session) {
