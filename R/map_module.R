@@ -71,5 +71,6 @@ mapServer <- function(id, overwrite, trigger, all, current){
     shiny::observe({
       overlap_map(leaflet::leafletProxy("map"), data = map(), colour = rv$colour)
     })
+    return(shiny::reactive(rv$selection))
   })
 }
