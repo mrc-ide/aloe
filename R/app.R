@@ -4,20 +4,24 @@ app <- function(){
   current <- sample(all, 3)
 
   ui <- shiny::fluidPage(
-    shiny::h4("Interventions"),
+
     shiny::fluidRow(
       column(8,
+             shiny::h4("Interventions"),
              shiny::tabsetPanel(
                shiny::tabPanel("ITNs", mapUI("ITNs")),
                shiny::tabPanel("IRS",  mapUI("IRS"))
              )),
-      column(4, shiny::plotOutput("impact_plot"))
+      column(4,
+             shiny::h4("Outcome"),
+             headerPanel(""),headerPanel(""),
+             shiny::plotOutput("impact_plot"))
     ),
     shiny::fluidRow(
       shiny::h4("Optimisation"),
-      shiny::column(4, shiny::numericInput("budget", "Budget", min = 0, max = 10000, value = 10000)),
-      shiny::column(4, shiny::radioButtons("target", "Target", choices = list("Cases averted", "Deaths averted"))),
-      shiny::column(4, shiny::actionButton("optimise", "Optimise"))
+      shiny::column(2, shiny::numericInput("budget", "Budget", min = 0, max = 10000, value = 10000)),
+      shiny::column(3, shiny::radioButtons("target", "Target", choices = list("Cases averted", "Deaths averted"))),
+      shiny::column(2, shiny::actionButton("optimise", "Optimise"))
     )
   )
 
@@ -61,10 +65,26 @@ app <- function(){
     cur_bs_pc <- shiny::reactive(round(100 * cur_bs() / rv$budget))
 
     output$impact_plot <- shiny::renderPlot({
-      impact_plot_base() +
-        ggplot2::geom_bar(ggplot2::aes(x = "Budget\nspent", y = cur_bs_pc()), stat = "identity") +
-        ggplot2::geom_bar(ggplot2::aes(x = "Cases\naverted", y = cur_ca_pc()), stat = "identity") +
-        ggplot2::geom_bar(ggplot2::aes(x = "Deaths\naverted", y = cur_da_pc()), stat = "identity")
+      pd <- data.frame(x = c(
+        "Budget\nspent",
+        "Cases\naverted",
+        "Deaths\naverted"),
+        y = c(
+          cur_bs_pc(),
+          cur_ca_pc(),
+          cur_da_pc()
+        )
+      )
+
+      bp <- impact_plot_base() +
+        ggplot2::geom_bar(data = pd, ggplot2::aes(x = x, y = y, fill = y), stat = "identity") +
+        ggplot2::scale_fill_gradient(low = "darkred", high = "green2", limits = c(0, 100), guide = "none", na.value = "orange")
+      if(cur_bs_pc() > 100){
+        bp <- bp +
+          ggplot2::ggtitle("Warning! Over budget") +
+          ggplot2::theme(title = ggplot2::element_text(colour = "red"))
+      }
+      bp
     })
 
   }
