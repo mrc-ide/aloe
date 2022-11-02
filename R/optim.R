@@ -9,3 +9,17 @@ mat <- function(unit, y){
   }
   return(empty)
 }
+
+optimise <- function(target, budget){
+  cost_matrix <- mat(df$NAME_1, df$cost)
+  if(target == "Cases averted"){
+    z_matrix <- mat(df[["NAME_1"]], df[["cases_averted"]])
+  } else {
+    z_matrix <- mat(df[["NAME_1"]], df[["deaths_averted"]])
+  }
+  optimised <- om::om(z = z_matrix, cost = cost_matrix, budget = budget) |>
+    as.data.frame() |>
+    dplyr::select(i, j) |>
+    dplyr::left_join(df, by = c("i", "j"))
+  return(optimised)
+}

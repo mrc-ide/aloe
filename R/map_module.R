@@ -1,8 +1,14 @@
 mapUI <- function(id){
   shiny::tagList(
-    leaflet::leafletOutput(NS(id, "map")),
-    shiny::actionButton(NS(id, "select_all"), paste0("Select all ", id)),
-    shiny::actionButton(NS(id, "select_current"), paste0("Select current ", id))
+    shiny::fluidRow(
+    shiny::column(9,
+                  leaflet::leafletOutput(shiny::NS(id, "map"))
+    ),
+    shiny::column(3,
+                  shiny::actionButton(shiny::NS(id, "select_all"), paste0("Select all ", id)),
+                  shiny::actionButton(shiny::NS(id, "select_current"), paste0("Select current ", id))
+    )
+  )
   )
 }
 

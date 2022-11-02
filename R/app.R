@@ -2,26 +2,44 @@ app <- function(){
 
   all <- unique(df$NAME_1)
   current <- sample(all, 3)
-  optim <- list(
-    ITNs = sample(all, 10),
-    IRS = sample(all, 5)
-  )
+
+  best_cases <- optimise("Cases averted", sum(df$cost))
+  best_deaths <- optimise("Deaths averted", sum(df$cost))
 
   ui <- shiny::fluidPage(
-    shiny::tabsetPanel(
-      shiny::tabPanel("ITNs", mapUI("ITNs")),
-      shiny::tabPanel("IRS",  mapUI("IRS"))
+    shiny::h4("Interventions"),
+    shiny::fluidRow(
+      column(8,
+             shiny::tabsetPanel(
+               shiny::tabPanel("ITNs", mapUI("ITNs")),
+               shiny::tabPanel("IRS",  mapUI("IRS"))
+             )),
+      column(4,
+
+      )
     ),
-    shiny::actionButton("select_optim", "Select optim")
+    shiny::fluidRow(
+      shiny::h4("Optimisation"),
+      shiny::column(4, shiny::numericInput("budget", "Budget", min = 0, max = 10000, value = 10000)),
+      shiny::column(4, shiny::radioButtons("target", "Target", choices = list("Cases averted", "Deaths averted"))),
+      shiny::column(4, shiny::actionButton("optimise", "Optimise"))
+    )
   )
 
   server <- function(input, output, session) {
 
-    rv <- reactiveValues(variable = NULL, trigger = 0)
+    rv <- shiny::reactiveValues(variable = NULL, trigger = 0, target = NULL, budget = NULL)
 
-    # Hitting a button provides an overwrite variable
-    shiny::observeEvent(input$select_optim, ignoreInit = TRUE, {
-      rv$variable <- optim
+    shiny::observeEvent(input$budget, {
+      rv$budget <- input$budget
+    })
+    shiny::observeEvent(input$target, {
+      rv$target <- input$target
+    })
+    shiny::observeEvent(input$optimise, ignoreInit = TRUE, {
+      optim_df <- optimise(rv$target, rv$budget)
+      rv$variable$ITNs <- optim_df[optim_df$itn == 1, "NAME_1"]
+      rv$variable$IRS <- optim_df[optim_df$irs == 1, "NAME_1"]
       rv$trigger <- rv$trigger + 1
     })
 
