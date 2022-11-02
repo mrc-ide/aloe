@@ -3,7 +3,7 @@ app <- function(){
   all <- unique(df$NAME_1)
   current <- sample(all, 3)
 
-  ui <- shiny::fluidPage(
+  ui <- shiny::fluidPage(theme = shinythemes::shinytheme("slate"),
 
     shiny::fluidRow(
       column(8,
