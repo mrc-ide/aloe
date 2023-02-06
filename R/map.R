@@ -19,9 +19,11 @@ base_map <- function(spatial){
 #'
 #' Current fixed to render NAME_1 level
 #'
+#' @param proxymap Proxy map
 #' @param data sf data
 #' @param colour Fill colour
 overlap_map <- function(proxymap, data, colour){
+  NAME_1 <- NULL # To avoid NSE check warning
   proxymap |>
     leaflet::addPolygons(data = data, stroke = TRUE, smoothFactor = 0.2,
                          opacity = 1, fill = TRUE, weight = 1,

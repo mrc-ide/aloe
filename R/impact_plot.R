@@ -1,7 +1,5 @@
 #' Base impact plot
 #'
-#' @param cases_averted_max Maximum cases averted (optimal)
-#'
 #' @return Base impact plot
 impact_plot_base <- function(){
   ggplot2::ggplot() +

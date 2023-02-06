@@ -1,3 +1,6 @@
+#' Map module UI
+#'
+#' @param id Intervention ID
 mapUI <- function(id){
   shiny::tagList(
     shiny::fluidRow(
@@ -11,6 +14,13 @@ mapUI <- function(id){
   )
 }
 
+#' Map module server
+#'
+#' @param id Intervention ID
+#' @param overwrite Plotting input
+#' @param trigger Trigger for map update
+#' @param all All subunits
+#' @param current Current subunits
 mapServer <- function(id, overwrite, trigger, all, current){
 
   shiny::moduleServer(id, function(input, output, session){
@@ -22,7 +32,7 @@ mapServer <- function(id, overwrite, trigger, all, current){
     rv$overwrite_trigger <- 0
 
     output$map <- base_map(mwi)
-    outputOptions(output, "map", suspendWhenHidden = FALSE)
+    shiny::outputOptions(output, "map", suspendWhenHidden = FALSE)
 
     # Selecting or deselecting a polygon
     shiny::observeEvent(input$map_shape_click, {
@@ -55,7 +65,7 @@ mapServer <- function(id, overwrite, trigger, all, current){
     # Overwrite event
     shiny::observeEvent(rv$overwrite_trigger, {
       # Clear anything not in the new selection
-      to_clear <- dplyr::filter(mwi, NAME_1 %in% setdiff(rv$selection, rv$to_overwrite))
+      to_clear <- dplyr::filter(mwi, .data$NAME_1 %in% setdiff(rv$selection, rv$to_overwrite))
       overlap_map(leaflet::leafletProxy("map"), data = to_clear, colour = "black")
       # Highlight anything missing from new selection
       rv$clicked <- setdiff(rv$to_overwrite, rv$selection)
@@ -65,7 +75,7 @@ mapServer <- function(id, overwrite, trigger, all, current){
     })
     # Update new highlighted polygons
     map <- shiny::reactive({
-      dplyr::filter(mwi, NAME_1 %in% rv$clicked)
+      dplyr::filter(mwi, .data$NAME_1 %in% rv$clicked)
     })
     shiny::observe({
       overlap_map(leaflet::leafletProxy("map"), data = map(), colour = rv$colour)

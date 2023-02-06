@@ -1,3 +1,9 @@
+#' App
+#'
+#' Launch shiny app
+#'
+#' @return NULL
+#' @export
 app <- function(){
 
   all <- unique(df$NAME_1)
@@ -6,20 +12,20 @@ app <- function(){
   ui <- shiny::fluidPage(theme = shinythemes::shinytheme("slate"),
 
     shiny::fluidRow(
-      column(8,
+      shiny::column(8,
              shiny::h4("Interventions"),
              shiny::tabsetPanel(
                shiny::tabPanel("ITNs", mapUI("ITNs")),
                shiny::tabPanel("IRS",  mapUI("IRS"))
              )),
-      column(4,
+      shiny::column(4,
              shiny::h4("Outcome"),
-             headerPanel(""),headerPanel(""),
+             shiny::headerPanel(""), shiny::headerPanel(""),
              shiny::plotOutput("impact_plot"))
     ),
     shiny::fluidRow(
       shiny::h4("Optimisation"),
-      shiny::column(2, shiny::numericInput("budget", "Budget", min = 0, max = 10000, value = 10000)),
+      shiny::column(2, shiny::numericInput("budget", "Budget", min = 0, max = 100000, value = 100000)),
       shiny::column(3, shiny::radioButtons("target", "Target", choices = list("Cases averted", "Deaths averted"))),
       shiny::column(2, shiny::actionButton("optimise", "Optimise"))
     )
@@ -52,8 +58,8 @@ app <- function(){
     })
 
     shiny::observe({
-      rv$itn_selected <-  mapServer("ITNs", reactive(rv$variable), reactive(rv$trigger), all, current)
-      rv$irs_selected <- mapServer("IRS", reactive(rv$variable), reactive(rv$trigger), all, current)
+      rv$itn_selected <-  mapServer("ITNs", shiny::reactive(rv$variable), shiny::reactive(rv$trigger), all, current)
+      rv$irs_selected <- mapServer("IRS", shiny::reactive(rv$variable), shiny::reactive(rv$trigger), all, current)
     })
 
     cur_df <- shiny::reactive(df_selection(df, rv$itn_selected(), rv$irs_selected()))
@@ -77,7 +83,7 @@ app <- function(){
       )
 
       bp <- impact_plot_base() +
-        ggplot2::geom_bar(data = pd, ggplot2::aes(x = x, y = y, fill = y), stat = "identity") +
+        ggplot2::geom_bar(data = pd, ggplot2::aes(x = .data$x, y = .data$y, fill = .data$y), stat = "identity") +
         ggplot2::scale_fill_gradient(low = "darkred", high = "green2", limits = c(0, 100), guide = "none", na.value = "orange")
       if(cur_bs_pc() > 100){
         bp <- bp +
