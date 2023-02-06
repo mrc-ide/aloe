@@ -4,11 +4,13 @@
 mapUI <- function(id){
   shiny::tagList(
     shiny::fluidRow(
+      # Map of selected spatial units
       leaflet::leafletOutput(shiny::NS(id, "map"))
     ),
-
     shiny::fluidRow(
+      # Button to select all spatial units for given intervention
       shiny::actionButton(shiny::NS(id, "select_all"), paste0("Select all ", id)),
+      # Button to select currently targeted spatial units for given intervention
       shiny::actionButton(shiny::NS(id, "select_current"), paste0("Select current ", id))
     )
   )
@@ -31,10 +33,11 @@ mapServer <- function(id, overwrite, trigger, all, current){
     rv$to_overwrite <- NULL
     rv$overwrite_trigger <- 0
 
+    # Plot the base map
     output$map <- base_map(mwi)
     shiny::outputOptions(output, "map", suspendWhenHidden = FALSE)
 
-    # Selecting or deselecting a polygon
+    # Selecting or deselecting a clicked polygon
     shiny::observeEvent(input$map_shape_click, {
       rv$clicked <- input$map_shape_click$id
       if(rv$clicked %in% rv$selection){

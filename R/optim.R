@@ -3,7 +3,7 @@
 #' @param unit Sub unit name
 #' @param y Matrix input
 #'
-#' @return Matrix in format for optimistion usihg the om package
+#' @return Matrix in format for optimisation using the om package
 mat <- function(unit, y){
   u <- unique(unit)
   empty <- matrix(NA, nrow = length(u), ncol = max(table(unit)))
