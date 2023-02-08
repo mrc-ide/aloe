@@ -4,28 +4,13 @@
 #'
 #' @param spatial sf data
 base_map <- function(spatial){
+  bbox <- sf::st_bbox(mwi) |>
+    as.vector()
+
   leaflet::renderLeaflet({
     leaflet::leaflet() |>
       leaflet::addTiles() |>
-      leaflet::addPolygons(data = spatial, stroke = TRUE, smoothFactor = 0.2,
-                           opacity = 1, fill = TRUE, weight = 1,
-                           color = "black", layerId = ~ NAME_1)
+      leaflet::fitBounds(bbox[1], bbox[2], bbox[3], bbox[4])
   })
 }
 
-
-
-#' Render a polygon fill overlay
-#'
-#' Current fixed to render NAME_1 level
-#'
-#' @param proxymap Proxy map
-#' @param data sf data
-#' @param colour Fill colour
-overlap_map <- function(proxymap, data, colour){
-  NAME_1 <- NULL # To avoid NSE check warning
-  proxymap |>
-    leaflet::addPolygons(data = data, stroke = TRUE, smoothFactor = 0.2,
-                         opacity = 1, fill = TRUE, weight = 1,
-                         color = colour, layerId = ~ NAME_1)
-}

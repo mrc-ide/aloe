@@ -23,66 +23,49 @@ mapUI <- function(id){
 #' @param trigger Trigger for map update
 #' @param all All subunits
 #' @param current Current subunits
-mapServer <- function(id, overwrite, trigger, all, current){
+mapServer <- function(id, rv, all, current){
 
   shiny::moduleServer(id, function(input, output, session){
-    rv <- shiny::reactiveValues()
-    rv$selection <- NULL
-    rv$clicked <- NULL
-    rv$colour <- NULL
-    rv$to_overwrite <- NULL
-    rv$overwrite_trigger <- 0
+
+    map_rv <- shiny::reactiveValues(
+      clicked = NULL
+    )
 
     # Plot the base map
     output$map <- base_map(mwi)
     shiny::outputOptions(output, "map", suspendWhenHidden = FALSE)
+    pal <- leaflet::colorNumeric(c("black", "deeppink"), 1:2)
+
 
     # Selecting or deselecting a clicked polygon
     shiny::observeEvent(input$map_shape_click, {
-      rv$clicked <- input$map_shape_click$id
-      if(rv$clicked %in% rv$selection){
-        rv$selection <- setdiff(rv$selection, rv$clicked)
-        rv$colour <- "black"
+      map_rv$clicked = input$map_shape_click$id
+      if(map_rv$clicked %in% rv$selection[[id]]){
+        rv$selection[[id]] <- setdiff(rv$selection[[id]], map_rv$clicked)
       } else {
-        rv$selection <- c(rv$selection, rv$clicked)
-        rv$colour <- "deeppink"
+        rv$selection[[id]] <- c(rv$selection[[id]], map_rv$clicked)
       }
-    })
-
-    # Select optimum (from app)
-    shiny::observeEvent(trigger(), ignoreInit = TRUE,  {
-      rv$to_overwrite <- overwrite()[[id]]
-      rv$overwrite_trigger <- rv$overwrite_trigger + 1
     })
     # Select all
     shiny::observeEvent(input$select_all, {
-      rv$to_overwrite <- all
-      rv$overwrite_trigger <- rv$overwrite_trigger + 1
+      # Update selection
+      rv$selection[[id]] <- all
     })
     # Select current
     shiny::observeEvent(input$select_current, {
-      rv$to_overwrite <- current
-      rv$overwrite_trigger <- rv$overwrite_trigger + 1
+      # Update selection
+      rv$selection[[id]] <- current[[id]]
     })
 
-    # Overwrite event
-    shiny::observeEvent(rv$overwrite_trigger, {
-      # Clear anything not in the new selection
-      to_clear <- dplyr::filter(mwi, .data$NAME_1 %in% setdiff(rv$selection, rv$to_overwrite))
-      overlap_map(leaflet::leafletProxy("map"), data = to_clear, colour = "black")
-      # Highlight anything missing from new selection
-      rv$clicked <- setdiff(rv$to_overwrite, rv$selection)
-      rv$colour <- "deeppink"
-      # Update new selection
-      rv$selection <- rv$to_overwrite
-    })
-    # Update new highlighted polygons
-    map <- shiny::reactive({
-      dplyr::filter(mwi, .data$NAME_1 %in% rv$clicked)
-    })
     shiny::observe({
-      overlap_map(leaflet::leafletProxy("map"), data = map(), colour = rv$colour)
+      rv$selection[[id]]
+      fill_pd <- shiny::reactive(
+        ifelse(mwi$NAME_1 %in% rv$selection[[id]], 2, 1)
+      )
+      leaflet::leafletProxy("map") |>
+        leaflet::addPolygons(data = mwi, stroke = TRUE, smoothFactor = 0.5,
+                             opacity = 1, fill = TRUE, weight = 1,
+                             color = ~pal(fill_pd()), layerId = ~ NAME_1)
     })
-    return(shiny::reactive(rv$selection))
   })
 }
