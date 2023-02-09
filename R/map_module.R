@@ -27,10 +27,6 @@ mapServer <- function(id, rv, all, current){
 
   shiny::moduleServer(id, function(input, output, session){
 
-    map_rv <- shiny::reactiveValues(
-      clicked = NULL
-    )
-
     # Plot the base map
     output$map <- base_map(mwi)
     shiny::outputOptions(output, "map", suspendWhenHidden = FALSE)
@@ -39,11 +35,11 @@ mapServer <- function(id, rv, all, current){
 
     # Selecting or deselecting a clicked polygon
     shiny::observeEvent(input$map_shape_click, {
-      map_rv$clicked = input$map_shape_click$id
-      if(map_rv$clicked %in% rv$selection[[id]]){
-        rv$selection[[id]] <- setdiff(rv$selection[[id]], map_rv$clicked)
+      clicked <- input$map_shape_click$id
+      if(clicked %in% rv$selection[[id]]){
+        rv$selection[[id]] <- setdiff(rv$selection[[id]], clicked)
       } else {
-        rv$selection[[id]] <- c(rv$selection[[id]], map_rv$clicked)
+        rv$selection[[id]] <- c(rv$selection[[id]], clicked)
       }
     })
     # Select all
@@ -57,15 +53,16 @@ mapServer <- function(id, rv, all, current){
       rv$selection[[id]] <- current[[id]]
     })
 
+    # Update the map
+    fill_pd <- shiny::reactive(
+      ifelse(mwi$NAME_1 %in% rv$selection[[id]], 2, 1)
+    )
     shiny::observe({
-      rv$selection[[id]]
-      fill_pd <- shiny::reactive(
-        ifelse(mwi$NAME_1 %in% rv$selection[[id]], 2, 1)
-      )
       leaflet::leafletProxy("map") |>
         leaflet::addPolygons(data = mwi, stroke = TRUE, smoothFactor = 0.5,
                              opacity = 1, fill = TRUE, weight = 1,
                              color = ~pal(fill_pd()), layerId = ~ NAME_1)
     })
+
   })
 }
