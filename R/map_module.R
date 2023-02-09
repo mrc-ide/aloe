@@ -23,14 +23,14 @@ mapUI <- function(id){
 #' @param trigger Trigger for map update
 #' @param all All subunits
 #' @param current Current subunits
-mapServer <- function(id, rv, all, current){
+mapServer <- function(id, rv, all, current, col){
 
   shiny::moduleServer(id, function(input, output, session){
 
     # Plot the base map
     output$map <- base_map(mwi)
     shiny::outputOptions(output, "map", suspendWhenHidden = FALSE)
-    pal <- leaflet::colorNumeric(c("black", "deeppink"), 1:2)
+    pal <- leaflet::colorNumeric(c("black", col), 1:2)
 
 
     # Selecting or deselecting a clicked polygon
@@ -44,12 +44,10 @@ mapServer <- function(id, rv, all, current){
     })
     # Select all
     shiny::observeEvent(input$select_all, {
-      # Update selection
       rv$selection[[id]] <- all
     })
     # Select current
     shiny::observeEvent(input$select_current, {
-      # Update selection
       rv$selection[[id]] <- current[[id]]
     })
 

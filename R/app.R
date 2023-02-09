@@ -6,6 +6,9 @@
 #' @export
 app <- function(interventions = c("itn", "irs")){
 
+  cols <- RColorBrewer::brewer.pal(n = 8, name = "Dark2")[1:length(interventions)]
+  names(cols) <- interventions
+
   ui <- shiny::fluidPage(
     theme = shinythemes::shinytheme("slate"),
 
@@ -70,8 +73,9 @@ app <- function(interventions = c("itn", "irs")){
       }
     })
 
-    mapServer("itn", rv, all, current)
-    #mapServer("irs", rv, all, current)
+    for(i in interventions){
+      mapServer(i, rv, all, current, cols[i])
+    }
   }
 
   shiny::shinyApp(ui, server)
