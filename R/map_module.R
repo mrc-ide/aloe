@@ -3,17 +3,24 @@
 #' @param id Intervention ID
 mapUI <- function(id){
   shiny::tagList(
-    shiny::fluidRow(
-      # Map of selected spatial units
-      leaflet::leafletOutput(shiny::NS(id, "map"))
+    shiny::column(
+      8,
+      shiny::fluidRow(
+        # Map of selected spatial units
+        leaflet::leafletOutput(shiny::NS(id, "map"))
+      ),
+      shiny::fluidRow(
+        # Button to select all spatial units for given intervention
+        shiny::actionButton(shiny::NS(id, "select_all"), paste0("Select all ", id)),
+        # Button to select currently targeted spatial units for given intervention
+        shiny::actionButton(shiny::NS(id, "select_current"), paste0("Select current ", id)),
+      )
     ),
-    shiny::fluidRow(
-      # Button to select all spatial units for given intervention
-      shiny::actionButton(shiny::NS(id, "select_all"), paste0("Select all ", id)),
-      # Button to select currently targeted spatial units for given intervention
-      shiny::actionButton(shiny::NS(id, "select_current"), paste0("Select current ", id)),
+    shiny::column(
+      2,
+      shiny::h4("Cost effective ranking"),
       # Show ranking of intervention0ons
-      shiny::verbatimTextOutput(shiny::NS(id, "ranking"))
+      shiny::tableOutput(shiny::NS(id, "ranking"))
     )
   )
 }
@@ -37,8 +44,9 @@ mapServer <- function(id, rv, all, current, col, rankings){
 
     shiny::observeEvent(input$map_shape_mouseover, {
       hovered <- input$map_shape_mouseover$id
-      rank <- paste0("CE ranking for ", hovered, ": ", unlist(rankings[rankings$NAME_1 == hovered, "rank_tbl"]))
-      output$ranking <- shiny::renderText(rank)
+      rank <- rankings[rankings$NAME_1 == hovered, "options"]
+      colnames(rank) <- hovered
+      output$ranking <- shiny::renderTable(rank)
     })
 
 
