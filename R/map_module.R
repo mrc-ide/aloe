@@ -11,7 +11,9 @@ mapUI <- function(id){
       # Button to select all spatial units for given intervention
       shiny::actionButton(shiny::NS(id, "select_all"), paste0("Select all ", id)),
       # Button to select currently targeted spatial units for given intervention
-      shiny::actionButton(shiny::NS(id, "select_current"), paste0("Select current ", id))
+      shiny::actionButton(shiny::NS(id, "select_current"), paste0("Select current ", id)),
+      # Show ranking of intervention0ons
+      shiny::verbatimTextOutput(shiny::NS(id, "ranking"))
     )
   )
 }
@@ -23,7 +25,8 @@ mapUI <- function(id){
 #' @param all All subunits
 #' @param current Current subunits
 #' @param col Intervention colour
-mapServer <- function(id, rv, all, current, col){
+#' @param rankings CE ranking table
+mapServer <- function(id, rv, all, current, col, rankings){
 
   shiny::moduleServer(id, function(input, output, session){
 
@@ -31,6 +34,12 @@ mapServer <- function(id, rv, all, current, col){
     output$map <- base_map(mwi)
     shiny::outputOptions(output, "map", suspendWhenHidden = FALSE)
     pal <- leaflet::colorNumeric(c("black", col), 1:2)
+
+    shiny::observeEvent(input$map_shape_mouseover, {
+      hovered <- input$map_shape_mouseover$id
+      rank <- paste0("CE ranking for ", hovered, ": ", unlist(rankings[rankings$NAME_1 == hovered, "rank_tbl"]))
+      output$ranking <- shiny::renderText(rank)
+    })
 
 
     # Selecting or deselecting a clicked polygon

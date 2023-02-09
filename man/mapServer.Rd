@@ -4,7 +4,7 @@
 \alias{mapServer}
 \title{Map module server}
 \usage{
-mapServer(id, rv, all, current, col)
+mapServer(id, rv, all, current, col, rankings)
 }
 \arguments{
 \item{id}{Intervention ID}
@@ -16,6 +16,8 @@ mapServer(id, rv, all, current, col)
 \item{current}{Current subunits}
 
 \item{col}{Intervention colour}
+
+\item{rankings}{CE ranking table}
 }
 \description{
 Map module server

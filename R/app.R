@@ -8,6 +8,8 @@
 #' @export
 app <- function(interventions = c("itn", "irs")){
 
+  rankings <- get_ce_order(df, interventions)
+
   cols <- map_cols(interventions)
   max_impact <- get_max_impact(df)
   max_budget <- sum(tapply(df$cost, df$NAME_1, max))
@@ -85,7 +87,7 @@ app <- function(interventions = c("itn", "irs")){
 
     # Map module
     for(i in interventions){
-      mapServer(i, rv, all, current, cols[i])
+      mapServer(i, rv, all, current, cols[i], rankings)
     }
 
     # Impact
