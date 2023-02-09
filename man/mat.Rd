@@ -12,7 +12,7 @@ mat(unit, y)
 \item{y}{Matrix input}
 }
 \value{
-Matrix in format for optimistion usihg the om package
+Matrix in format for optimisation using the om package
 }
 \description{
 Create matrix for optimisation

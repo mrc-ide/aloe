@@ -11,7 +11,9 @@ mapUI <- function(id){
       # Button to select all spatial units for given intervention
       shiny::actionButton(shiny::NS(id, "select_all"), paste0("Select all ", id)),
       # Button to select currently targeted spatial units for given intervention
-      shiny::actionButton(shiny::NS(id, "select_current"), paste0("Select current ", id))
+      shiny::actionButton(shiny::NS(id, "select_current"), paste0("Select current ", id)),
+      # Show ranking of intervention0ons
+      shiny::verbatimTextOutput(shiny::NS(id, "ranking"))
     )
   )
 }
@@ -19,70 +21,55 @@ mapUI <- function(id){
 #' Map module server
 #'
 #' @param id Intervention ID
-#' @param overwrite Plotting input
-#' @param trigger Trigger for map update
+#' @param rv Reactive values
 #' @param all All subunits
 #' @param current Current subunits
-mapServer <- function(id, overwrite, trigger, all, current){
+#' @param col Intervention colour
+#' @param rankings CE ranking table
+mapServer <- function(id, rv, all, current, col, rankings){
 
   shiny::moduleServer(id, function(input, output, session){
-    rv <- shiny::reactiveValues()
-    rv$selection <- NULL
-    rv$clicked <- NULL
-    rv$colour <- NULL
-    rv$to_overwrite <- NULL
-    rv$overwrite_trigger <- 0
 
     # Plot the base map
     output$map <- base_map(mwi)
     shiny::outputOptions(output, "map", suspendWhenHidden = FALSE)
+    pal <- leaflet::colorNumeric(c("black", col), 1:2)
+
+    shiny::observeEvent(input$map_shape_mouseover, {
+      hovered <- input$map_shape_mouseover$id
+      rank <- paste0("CE ranking for ", hovered, ": ", unlist(rankings[rankings$NAME_1 == hovered, "rank_tbl"]))
+      output$ranking <- shiny::renderText(rank)
+    })
+
 
     # Selecting or deselecting a clicked polygon
     shiny::observeEvent(input$map_shape_click, {
-      rv$clicked <- input$map_shape_click$id
-      if(rv$clicked %in% rv$selection){
-        rv$selection <- setdiff(rv$selection, rv$clicked)
-        rv$colour <- "black"
+      clicked <- input$map_shape_click$id
+      if(clicked %in% rv$selection[[id]]){
+        rv$selection[[id]] <- setdiff(rv$selection[[id]], clicked)
       } else {
-        rv$selection <- c(rv$selection, rv$clicked)
-        rv$colour <- "deeppink"
+        rv$selection[[id]] <- c(rv$selection[[id]], clicked)
       }
-    })
-
-    # Select optimum (from app)
-    shiny::observeEvent(trigger(), ignoreInit = TRUE,  {
-      rv$to_overwrite <- overwrite()[[id]]
-      rv$overwrite_trigger <- rv$overwrite_trigger + 1
     })
     # Select all
     shiny::observeEvent(input$select_all, {
-      rv$to_overwrite <- all
-      rv$overwrite_trigger <- rv$overwrite_trigger + 1
+      rv$selection[[id]] <- all
     })
     # Select current
     shiny::observeEvent(input$select_current, {
-      rv$to_overwrite <- current
-      rv$overwrite_trigger <- rv$overwrite_trigger + 1
+      rv$selection[[id]] <- current[[id]]
     })
 
-    # Overwrite event
-    shiny::observeEvent(rv$overwrite_trigger, {
-      # Clear anything not in the new selection
-      to_clear <- dplyr::filter(mwi, .data$NAME_1 %in% setdiff(rv$selection, rv$to_overwrite))
-      overlap_map(leaflet::leafletProxy("map"), data = to_clear, colour = "black")
-      # Highlight anything missing from new selection
-      rv$clicked <- setdiff(rv$to_overwrite, rv$selection)
-      rv$colour <- "deeppink"
-      # Update new selection
-      rv$selection <- rv$to_overwrite
-    })
-    # Update new highlighted polygons
-    map <- shiny::reactive({
-      dplyr::filter(mwi, .data$NAME_1 %in% rv$clicked)
-    })
+    # Update the map
+    fill_pd <- shiny::reactive(
+      ifelse(mwi$NAME_1 %in% rv$selection[[id]], 2, 1)
+    )
     shiny::observe({
-      overlap_map(leaflet::leafletProxy("map"), data = map(), colour = rv$colour)
+      leaflet::leafletProxy("map") |>
+        leaflet::addPolygons(data = mwi, stroke = TRUE, smoothFactor = 0.5,
+                             opacity = 1, fill = TRUE, weight = 1,
+                             color = ~pal(fill_pd()), layerId = ~ NAME_1)
     })
-    return(shiny::reactive(rv$selection))
+
   })
 }

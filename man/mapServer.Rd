@@ -4,18 +4,20 @@
 \alias{mapServer}
 \title{Map module server}
 \usage{
-mapServer(id, overwrite, trigger, all, current)
+mapServer(id, rv, all, current, col, rankings)
 }
 \arguments{
 \item{id}{Intervention ID}
 
-\item{overwrite}{Plotting input}
-
-\item{trigger}{Trigger for map update}
+\item{rv}{Reactive values}
 
 \item{all}{All subunits}
 
 \item{current}{Current subunits}
+
+\item{col}{Intervention colour}
+
+\item{rankings}{CE ranking table}
 }
 \description{
 Map module server

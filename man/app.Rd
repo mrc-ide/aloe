@@ -4,7 +4,10 @@
 \alias{app}
 \title{App}
 \usage{
-app()
+app(interventions = c("itn", "irs"))
+}
+\arguments{
+\item{interventions}{Vector of intervention options}
 }
 \description{
 Launch shiny app
