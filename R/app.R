@@ -17,10 +17,11 @@ app <- function(interventions = c("itn", "irs")){
   ui <- shiny::fluidPage(
     theme = shinythemes::shinytheme("slate"),
 
+    shiny::h1("!! Prototype - outputs are not real !!"),
     shiny::fluidRow(
-      # Tabs for each intervention
       shiny::column(
-        8,
+        7,
+        # Tabs for each intervention
         shiny::h4("Interventions"),
         do.call(
           shiny::tabsetPanel,
@@ -34,23 +35,42 @@ app <- function(interventions = c("itn", "irs")){
           )
         )
       ),
-      # Outcomes plot
+
       shiny::column(
-        4,
+        5,
+        # Outcomes plot
         shiny::h4("Outcome"),
         shiny::headerPanel(""),
         shiny::headerPanel(""),
         shiny::plotOutput("impact_plot")
-      )
+
+      ),
     ),
     # Options to optimise for a given budget
     shiny::fluidRow(
-      shiny::h4("Optimisation"),
-      shiny::column(2, shiny::numericInput("budget", "Budget", min = 0, max = max_budget, value = max_budget)),
-      shiny::column(3, shiny::radioButtons("target", "Target", choices = list("Cases averted", "Deaths averted"))),
-      shiny::column(2, shiny::actionButton("optimise", "Optimise"))
+      shiny::column(
+        6,
+        shiny::br(),
+        shiny::br(),
+        shiny::h4("Optimisation"),
+        shiny::column(2, shiny::numericInput("budget", "Budget", min = 0, max = max_budget, value = max_budget)),
+        shiny::column(3, shiny::radioButtons("target", "Target", choices = list("Cases averted", "Deaths averted"))),
+        shiny::column(2, shiny::actionButton("optimise", "Optimise"))
+      ),
+      shiny::column(
+        6,
+        shiny::br(),
+        shiny::br(),
+        shiny::h4("Instructions"),
+        shiny::p("Choose where interventions are implemented by clicking on admin units in the interventions tabs."),
+        shiny::p("Choose to select all admin units or select admin units where intervention is currenly used using the buttons below the map."),
+        shiny::p("Hover over an admin unit to see the CE ranking of all intervention options."),
+        shiny::p("Choose to optimise all interventions for a given budget, minimising cases or deaths in the Optimisation section."),
+        shiny::p("View the cost and impact (as a % of maximum impact for the budget in the outcome plot")
+      )
     )
   )
+
 
   server <- function(input, output, session) {
 

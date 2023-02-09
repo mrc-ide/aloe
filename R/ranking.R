@@ -14,11 +14,8 @@ get_ce_order <- function(df, interventions){
   ranked <- df |>
     dplyr::mutate(efficiency = .data$cost / .data$cases_averted) |>
     dplyr::mutate(rank = rank(.data$efficiency, ties.method = "random"), .by = "NAME_1") |>
-    dplyr::mutate(options = paste0(.data$rank, ":", .data$option_names)) |>
+    dplyr::mutate(options = paste0(.data$rank, ":", option_names)) |>
     dplyr::arrange(.data$NAME_1, .data$rank) |>
-    dplyr::group_by(.data$NAME_1) |>
-    dplyr::summarise(rank_tbl = paste(.data$options, collapse = ". ")) |>
-    dplyr::ungroup()
-
+    dplyr::select("NAME_1", "options")
   return(ranked)
 }
