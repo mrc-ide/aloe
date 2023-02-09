@@ -2,6 +2,8 @@
 #'
 #' Launch shiny app
 #'
+#' @param interventions Vector of intervention options
+#'
 #' @return NULL
 #' @export
 app <- function(interventions = c("itn", "irs")){
@@ -78,7 +80,7 @@ app <- function(interventions = c("itn", "irs")){
         rv$selection[[i]] <- optim_df[optim_df[[i]] == 1, "NAME_1"]
       }
       rv$best <- c(sum(optim_df$cases_averted), sum(optim_df$deaths_averted))
-      rv$budget <- isolate(input$budget)
+      rv$budget <- shiny::isolate(input$budget)
     })
 
     # Map module

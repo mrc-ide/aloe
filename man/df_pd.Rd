@@ -9,12 +9,12 @@ df_pd(df, rv, interventions)
 \arguments{
 \item{df}{Simulation bank}
 
-\item{selected_itn}{Current ITN sub unit selection}
+\item{rv}{Reactive values}
 
-\item{selected_irs}{Current IRS sub unit selection}
+\item{interventions}{Vector of intervention options}
 }
 \value{
-Filtered simulation bank
+Impact plot data
 }
 \description{
 Select current solution from simulation bank

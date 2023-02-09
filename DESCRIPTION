@@ -21,7 +21,8 @@ Imports:
     leaflet,
     shinythemes,
     rlang (>= 0.4.11),
-    RColorBrewer
+    RColorBrewer,
+    sf
 RoxygenNote: 7.2.3
 Suggests: 
     roxygen2

@@ -9,13 +9,13 @@ mapServer(id, rv, all, current, col)
 \arguments{
 \item{id}{Intervention ID}
 
+\item{rv}{Reactive values}
+
 \item{all}{All subunits}
 
 \item{current}{Current subunits}
 
-\item{overwrite}{Plotting input}
-
-\item{trigger}{Trigger for map update}
+\item{col}{Intervention colour}
 }
 \description{
 Map module server

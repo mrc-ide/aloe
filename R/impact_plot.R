@@ -1,5 +1,7 @@
 #' Impact plot
 #'
+#' @param pd plot data
+#'
 #' @return Impact plot
 impact_plot <- function(pd){
   ip<-  ggplot2::ggplot() +

@@ -2,13 +2,16 @@
 % Please edit documentation in R/impact_plot.R
 \name{impact_plot}
 \alias{impact_plot}
-\title{Base impact plot}
+\title{Impact plot}
 \usage{
 impact_plot(pd)
 }
+\arguments{
+\item{pd}{plot data}
+}
 \value{
-Base impact plot
+Impact plot
 }
 \description{
-Base impact plot
+Impact plot
 }

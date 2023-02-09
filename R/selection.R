@@ -1,10 +1,10 @@
 #' Select current solution from simulation bank
 #'
 #' @param df Simulation bank
-#' @param selected_itn Current ITN sub unit selection
-#' @param selected_irs Current IRS sub unit selection
+#' @param rv Reactive values
+#' @inheritParams app
 #'
-#' @return Filtered simulation bank
+#' @return Impact plot data
 df_pd <- function(df, rv, interventions){
   out <- data.frame(
     NAME_1 = unique(df$NAME_1)
@@ -35,6 +35,11 @@ df_pd <- function(df, rv, interventions){
   return(pd)
 }
 
+#' Maximum impact possible
+#'
+#' @param df Input data
+#'
+#' @return Vector of maximum cases and deaths averted
 get_max_impact <- function(df){
   max_cases_averted <- sum(tapply(df$cases_averted, df$NAME_1, max))
   max_deaths_averted <- sum(tapply(df$deaths_averted, df$NAME_1, max))

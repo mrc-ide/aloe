@@ -19,10 +19,10 @@ mapUI <- function(id){
 #' Map module server
 #'
 #' @param id Intervention ID
-#' @param overwrite Plotting input
-#' @param trigger Trigger for map update
+#' @param rv Reactive values
 #' @param all All subunits
 #' @param current Current subunits
+#' @param col Intervention colour
 mapServer <- function(id, rv, all, current, col){
 
   shiny::moduleServer(id, function(input, output, session){
