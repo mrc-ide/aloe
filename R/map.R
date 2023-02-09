@@ -14,3 +14,15 @@ base_map <- function(spatial){
   })
 }
 
+#' Draw map colours
+#'
+#' Each of up to a maximum of 8 interventions is assigned a named colour
+#'
+#' @param interventions Vector of interventions
+#'
+#' @return A colour vector
+map_cols <- function(interventions){
+  cols <- RColorBrewer::brewer.pal(n = 8, name = "Dark2")[1:length(interventions)]
+  names(cols) <- interventions
+  return(cols)
+}

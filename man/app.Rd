@@ -4,7 +4,7 @@
 \alias{app}
 \title{App}
 \usage{
-app()
+app(interventions = c("itn", "irs"))
 }
 \description{
 Launch shiny app

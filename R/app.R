@@ -6,8 +6,9 @@
 #' @export
 app <- function(interventions = c("itn", "irs")){
 
-  cols <- RColorBrewer::brewer.pal(n = 8, name = "Dark2")[1:length(interventions)]
-  names(cols) <- interventions
+  cols <- map_cols(interventions)
+  max_impact <- get_max_impact(df)
+  max_budget <- sum(tapply(df$cost, df$NAME_1, max))
 
   ui <- shiny::fluidPage(
     theme = shinythemes::shinytheme("slate"),
@@ -41,7 +42,7 @@ app <- function(interventions = c("itn", "irs")){
     # Options to optimise for a given budget
     shiny::fluidRow(
       shiny::h4("Optimisation"),
-      shiny::column(2, shiny::numericInput("budget", "Budget", min = 0, max = 100000, value = 100000)),
+      shiny::column(2, shiny::numericInput("budget", "Budget", min = 0, max = max_budget, value = max_budget)),
       shiny::column(3, shiny::radioButtons("target", "Target", choices = list("Cases averted", "Deaths averted"))),
       shiny::column(2, shiny::actionButton("optimise", "Optimise"))
     )
@@ -49,7 +50,9 @@ app <- function(interventions = c("itn", "irs")){
 
   server <- function(input, output, session) {
 
+    # Index of all
     all <- unique(df$NAME_1)
+    # List of present sub units for each intervention
     current <- list(
       itn = sample(all, 6),
       irs = sample(all, 3)
@@ -62,6 +65,9 @@ app <- function(interventions = c("itn", "irs")){
       selection[[i]] <- NULL
     }
     rv$selection <- selection
+    # To store best impact for a given budget and target
+    rv$best <- max_impact
+    rv$budget <- max_budget
 
     # Optimisation
     shiny::observeEvent(input$optimise, {
@@ -71,11 +77,18 @@ app <- function(interventions = c("itn", "irs")){
       for(i in interventions){
         rv$selection[[i]] <- optim_df[optim_df[[i]] == 1, "NAME_1"]
       }
+      rv$best <- c(sum(optim_df$cases_averted), sum(optim_df$deaths_averted))
+      rv$budget <- isolate(input$budget)
     })
 
+    # Map module
     for(i in interventions){
       mapServer(i, rv, all, current, cols[i])
     }
+
+    # Impact
+    pd <- shiny::reactive(df_pd(df, rv, interventions))
+    output$impact_plot <- shiny::renderPlot(impact_plot(pd()))
   }
 
   shiny::shinyApp(ui, server)
