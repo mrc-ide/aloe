@@ -18,12 +18,13 @@ mat <- function(unit, y){
 #'
 #' @param target Target for optimisation, can be "cases_averted" or "deaths_averted".
 #' @param budget Budget
-optimise <- function(target, budget){
-  cost_matrix <- mat(df$NAME_1, df$cost)
+#' @inheritParams app
+optimise <- function(df, target, budget, spatial_id){
+  cost_matrix <- mat(df[[spatial_id]], df$cost)
   if(target == "Cases averted"){
-    z_matrix <- mat(df[["NAME_1"]], df[["cases_averted"]])
+    z_matrix <- mat(df[[spatial_id]], df[["cases_averted"]])
   } else {
-    z_matrix <- mat(df[["NAME_1"]], df[["deaths_averted"]])
+    z_matrix <- mat(df[[spatial_id]], df[["deaths_averted"]])
   }
   optimised <- om::om(z = z_matrix, cost = cost_matrix, budget = budget) |>
     as.data.frame() |>

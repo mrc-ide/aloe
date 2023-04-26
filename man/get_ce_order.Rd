@@ -4,12 +4,14 @@
 \alias{get_ce_order}
 \title{Cost effectiveness ranking}
 \usage{
-get_ce_order(df, interventions)
+get_ce_order(df, interventions, spatial_id)
 }
 \arguments{
 \item{df}{Input data}
 
 \item{interventions}{Vector of intervention options}
+
+\item{spatial_id}{Name of unique spatial unit identifier column}
 }
 \value{
 Ranking of intervention options by $ per case averted

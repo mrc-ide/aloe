@@ -2,17 +2,21 @@
 #'
 #' Launch shiny app
 #'
+#' @param spatial The sf spatial data
+#' @param df The simulation bank
 #' @param interventions Vector of intervention options
+#' @param spatial_id Name of unique spatial unit identifier column
 #'
 #' @return NULL
 #' @export
-app <- function(interventions = c("itn", "irs")){
+app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "irs"), spatial_id = "NAME_1"){
 
-  rankings <- get_ce_order(df, interventions)
+  rankings <- get_ce_order(df, interventions, spatial_id)
 
   cols <- map_cols(interventions)
-  max_impact <- get_max_impact(df)
-  max_budget <- sum(tapply(df$cost, df$NAME_1, max))
+
+  max_impact <- get_max_impact(df, spatial_id)
+  max_budget <- sum(tapply(df$cost, df[[spatial_id]], max))
 
   ui <- shiny::fluidPage(
     theme = shinythemes::shinytheme("slate"),
@@ -75,7 +79,7 @@ app <- function(interventions = c("itn", "irs")){
   server <- function(input, output, session) {
 
     # Index of all
-    all <- unique(df$NAME_1)
+    all <- unique(df[[spatial_id]])
     # List of present sub units for each intervention
     current <- list(
       itn = sample(all, 6),
@@ -96,10 +100,10 @@ app <- function(interventions = c("itn", "irs")){
     # Optimisation
     shiny::observeEvent(input$optimise, {
       # Run optimisation
-      optim_df <- optimise(shiny::isolate(input$target), shiny::isolate(input$budget))
+      optim_df <- optimise(df, shiny::isolate(input$target), shiny::isolate(input$budget), spatial_id)
       # Update selection
       for(i in interventions){
-        rv$selection[[i]] <- optim_df[optim_df[[i]] == 1, "NAME_1"]
+        rv$selection[[i]] <- optim_df[optim_df[[i]] == 1, spatial_id]
       }
       rv$best <- c(sum(optim_df$cases_averted), sum(optim_df$deaths_averted))
       rv$budget <- shiny::isolate(input$budget)
@@ -107,11 +111,11 @@ app <- function(interventions = c("itn", "irs")){
 
     # Map module
     for(i in interventions){
-      mapServer(i, rv, all, current, cols[i], rankings)
+      mapServer(i, rv, all, current, cols[i], rankings, spatial, spatial_id)
     }
 
     # Impact
-    pd <- shiny::reactive(df_pd(df, rv, interventions))
+    pd <- shiny::reactive(df_pd(df, rv, interventions, spatial_id))
     output$impact_plot <- shiny::renderPlot(impact_plot(pd()))
   }
 

@@ -35,18 +35,19 @@ mapUI <- function(id){
 #' @param current Current subunits
 #' @param col Intervention colour
 #' @param rankings CE ranking table
-mapServer <- function(id, rv, all, current, col, rankings){
+#' @inheritParams app
+mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id){
 
   shiny::moduleServer(id, function(input, output, session){
 
     # Plot the base map
-    output$map <- base_map(mwi)
+    output$map <- base_map(spatial)
     shiny::outputOptions(output, "map", suspendWhenHidden = FALSE)
     pal <- leaflet::colorNumeric(c("black", col), 1:2)
 
     shiny::observeEvent(input$map_shape_mouseover, {
       hovered <- input$map_shape_mouseover$id
-      rank <- rankings[rankings$NAME_1 == hovered, "options"]
+      rank <- rankings[rankings[[spatial_id]] == hovered, "options"]
       colnames(rank) <- hovered
       output$ranking <- shiny::renderTable(rank)
     })
@@ -76,13 +77,13 @@ mapServer <- function(id, rv, all, current, col, rankings){
 
     # Update the map
     fill_pd <- shiny::reactive(
-      ifelse(mwi$NAME_1 %in% rv$selection[[id]], 2, 1)
+      ifelse(spatial[[spatial_id]] %in% rv$selection[[id]], 2, 1)
     )
     shiny::observe({
       leaflet::leafletProxy("map") |>
-        leaflet::addPolygons(data = mwi, stroke = TRUE, smoothFactor = 0.5,
+        leaflet::addPolygons(data = spatial, stroke = TRUE, smoothFactor = 0.5,
                              opacity = 1, fill = TRUE, weight = 1,
-                             color = ~pal(fill_pd()), layerId = ~ NAME_1)
+                             color = ~pal(fill_pd()), layerId = ~ spatial[[spatial_id]])
     })
 
   })

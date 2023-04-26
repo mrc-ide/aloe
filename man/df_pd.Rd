@@ -4,7 +4,7 @@
 \alias{df_pd}
 \title{Select current solution from simulation bank}
 \usage{
-df_pd(df, rv, interventions)
+df_pd(df, rv, interventions, spatial_id)
 }
 \arguments{
 \item{df}{Simulation bank}
@@ -12,6 +12,8 @@ df_pd(df, rv, interventions)
 \item{rv}{Reactive values}
 
 \item{interventions}{Vector of intervention options}
+
+\item{spatial_id}{Name of unique spatial unit identifier column}
 }
 \value{
 Impact plot data

@@ -5,15 +5,17 @@
 #' @inheritParams app
 #'
 #' @return Impact plot data
-df_pd <- function(df, rv, interventions){
+df_pd <- function(df, rv, interventions, spatial_id){
   out <- data.frame(
-    NAME_1 = unique(df$NAME_1)
+    x = unique(df[[spatial_id]])
   )
+  colnames(out) <- spatial_id
+
   for(i in interventions){
-    out[,i] <- ifelse(out$NAME_1 %in% rv$selection[[i]], 1, 0)
+    out[,i] <- ifelse(out[[spatial_id]] %in% rv$selection[[i]], 1, 0)
   }
   out <- out |>
-    dplyr::left_join(df, by = c("NAME_1", interventions))
+    dplyr::left_join(df, by = c(spatial_id, interventions))
 
   cases_averted <- sum(out$cases_averted)
   cases_averted_pc <- 100 * (cases_averted / rv$best[1])
@@ -38,11 +40,12 @@ df_pd <- function(df, rv, interventions){
 #' Maximum impact possible
 #'
 #' @param df Input data
+#' @inheritParams app
 #'
 #' @return Vector of maximum cases and deaths averted
-get_max_impact <- function(df){
-  max_cases_averted <- sum(tapply(df$cases_averted, df$NAME_1, max))
-  max_deaths_averted <- sum(tapply(df$deaths_averted, df$NAME_1, max))
+get_max_impact <- function(df, spatial_id){
+  max_cases_averted <- sum(tapply(df$cases_averted, df[[spatial_id]], max))
+  max_deaths_averted <- sum(tapply(df$deaths_averted, df[[spatial_id]], max))
   return(c(max_cases_averted, max_deaths_averted))
 }
 

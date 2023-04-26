@@ -4,10 +4,21 @@
 \alias{app}
 \title{App}
 \usage{
-app(interventions = c("itn", "irs"))
+app(
+  spatial = mwi,
+  df = df_mwi,
+  interventions = c("itn", "irs"),
+  spatial_id = "NAME_1"
+)
 }
 \arguments{
+\item{spatial}{The sf spatial data}
+
+\item{df}{The simulation bank}
+
 \item{interventions}{Vector of intervention options}
+
+\item{spatial_id}{Name of unique spatial unit identifier column}
 }
 \description{
 Launch shiny app

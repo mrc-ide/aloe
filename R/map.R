@@ -4,7 +4,7 @@
 #'
 #' @param spatial sf data
 base_map <- function(spatial){
-  bbox <- sf::st_bbox(mwi) |>
+  bbox <- sf::st_bbox(spatial) |>
     as.vector()
 
   leaflet::renderLeaflet({

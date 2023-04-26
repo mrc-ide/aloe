@@ -4,12 +4,16 @@
 \alias{optimise}
 \title{Run optimisation}
 \usage{
-optimise(target, budget)
+optimise(df, target, budget, spatial_id)
 }
 \arguments{
+\item{df}{The simulation bank}
+
 \item{target}{Target for optimisation, can be "cases_averted" or "deaths_averted".}
 
 \item{budget}{Budget}
+
+\item{spatial_id}{Name of unique spatial unit identifier column}
 }
 \description{
 Run optimisation

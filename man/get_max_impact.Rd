@@ -4,10 +4,12 @@
 \alias{get_max_impact}
 \title{Maximum impact possible}
 \usage{
-get_max_impact(df)
+get_max_impact(df, spatial_id)
 }
 \arguments{
 \item{df}{Input data}
+
+\item{spatial_id}{Name of unique spatial unit identifier column}
 }
 \value{
 Vector of maximum cases and deaths averted

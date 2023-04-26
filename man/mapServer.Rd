@@ -4,7 +4,7 @@
 \alias{mapServer}
 \title{Map module server}
 \usage{
-mapServer(id, rv, all, current, col, rankings)
+mapServer(id, rv, all, current, col, rankings, spatial, spatial_id)
 }
 \arguments{
 \item{id}{Intervention ID}
@@ -18,6 +18,10 @@ mapServer(id, rv, all, current, col, rankings)
 \item{col}{Intervention colour}
 
 \item{rankings}{CE ranking table}
+
+\item{spatial}{The sf spatial data}
+
+\item{spatial_id}{Name of unique spatial unit identifier column}
 }
 \description{
 Map module server
