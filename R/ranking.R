@@ -10,7 +10,6 @@ get_ce_order <- function(df, interventions){
   })
   option_names[option_names == ""] <- "None"
 
-
   ranked <- df |>
     dplyr::mutate(efficiency = .data$cost / .data$cases_averted) |>
     dplyr::mutate(rank = rank(.data$efficiency, ties.method = "random"), .by = "NAME_1") |>
