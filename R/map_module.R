@@ -14,6 +14,8 @@ mapUI <- function(id){
         shiny::actionButton(shiny::NS(id, "select_all"), paste0("Select all ", id)),
         # Button to select currently targeted spatial units for given intervention
         shiny::actionButton(shiny::NS(id, "select_current"), paste0("Select current ", id)),
+        # Button to clear current selection of spatial units for given intervention
+        shiny::actionButton(shiny::NS(id, "clear_selection"), paste0("Clear ", id)),
       )
     ),
     shiny::column(
@@ -66,6 +68,10 @@ mapServer <- function(id, rv, all, current, col, rankings){
     # Select current
     shiny::observeEvent(input$select_current, {
       rv$selection[[id]] <- current[[id]]
+    })
+    # Clear selection
+    shiny::observeEvent(input$clear_selection, {
+      rv$selection[[id]] <- NULL
     })
 
     # Update the map
