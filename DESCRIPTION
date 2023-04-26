@@ -22,8 +22,7 @@ Imports:
     shinythemes,
     rlang (>= 0.4.11),
     RColorBrewer,
-    sf,
-    pkgload
+    sf
 RoxygenNote: 7.2.3
 Suggests: 
     roxygen2

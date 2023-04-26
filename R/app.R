@@ -9,7 +9,7 @@
 #'
 #' @return NULL
 #' @export
-app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "irs"), spatial_id = "NAME_1"){
+app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME_1"){
 
   rankings <- get_ce_order(df, interventions, spatial_id)
 
