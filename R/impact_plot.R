@@ -4,20 +4,23 @@
 #'
 #' @return Impact plot
 impact_plot <- function(pd){
-  ip<-  ggplot2::ggplot() +
-    ggplot2::geom_hline(yintercept = 100, lty = 2) +
+
+  # Crop upper extent to 100
+  pd$y[pd$y >100] <- 100
+
+  ip <- ggplot2::ggplot() +
+    ggplot2::geom_hline(yintercept = 0, lty = 2) +
     ggplot2::xlab("") +
     ggplot2::scale_y_continuous(
-      name = "% of maximum",
-      breaks = c(0, 25, 50, 75, 100)) +
+      name = "% Change vs BAU",
+      breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100),
+      labels = c("-100", "-75", "-50", "-25", "0", "25", "50", "75", "100 +"),
+      limits = c(-100, 100)) +
     ggplot2::theme_bw() +
-    ggplot2::geom_bar(data = pd, ggplot2::aes(x = .data$x, y = .data$y, fill = .data$y), stat = "identity") +
-    ggplot2::scale_fill_gradient(low = "darkred", high = "green2", limits = c(0, 100), guide = "none", na.value = "orange")
+    ggplot2::geom_bar(data = pd, ggplot2::aes(x = .data$x, y = .data$y, fill = .data$x), stat = "identity", col = "black") +
+    ggplot2::scale_fill_manual(values = c("#86cae7", "#e3afc7", "#bed4aa")) +
+    ggplot2::theme(text = ggplot2::element_text(size = 20)) +
+    ggplot2::guides(fill = "none")
 
-  if(pd[pd$x == "Budget\nspent", "y"] > 100){
-    ip <- ip +
-      ggplot2::ggtitle("Warning! Over budget") +
-      ggplot2::theme(title = ggplot2::element_text(colour = "red"))
-  }
   return(ip)
 }

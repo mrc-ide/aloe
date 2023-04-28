@@ -18,6 +18,9 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
   max_impact <- get_max_impact(df, spatial_id)
   max_budget <- sum(tapply(df$cost, df[[spatial_id]], max))
 
+  bau_impact <- get_bau_impact(df)
+  bau_cost <- sum(df[df$current == 1, "cost"])
+
   ui <- shiny::fluidPage(
     theme = shinythemes::shinytheme("slate"),
 
@@ -82,15 +85,15 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
     all <- unique(df[[spatial_id]])
     # List of present sub units for each intervention
     current <- list(
-      itn = sample(all, 6),
-      irs = sample(all, 3)
+      itn = df[[spatial_id]][df$current == 1 & df$itn == 1],
+      irs = df[[spatial_id]][df$current == 1 & df$irs == 1]
     )
 
     # Initialise reactive values
     rv <- shiny::reactiveValues()
     selection <- list()
     for(i in interventions){
-      selection[[i]] <- NULL
+      selection[[i]] <- current[[i]]
     }
     rv$selection <- selection
     # To store best impact for a given budget and target
@@ -105,7 +108,7 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
       for(i in interventions){
         rv$selection[[i]] <- optim_df[optim_df[[i]] == 1, spatial_id]
       }
-      rv$best <- c(sum(optim_df$cases_averted), sum(optim_df$deaths_averted))
+      rv$best <- c(sum(optim_df$cases), sum(optim_df$deaths))
       rv$budget <- shiny::isolate(input$budget)
     })
 
@@ -115,7 +118,7 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
     }
 
     # Impact
-    pd <- shiny::reactive(df_pd(df, rv, interventions, spatial_id))
+    pd <- shiny::reactive(df_pd(df, rv, interventions, spatial_id, bau_impact, bau_cost))
     output$impact_plot <- shiny::renderPlot(impact_plot(pd()))
   }
 

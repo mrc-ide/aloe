@@ -2,10 +2,12 @@
 #'
 #' @param df Simulation bank
 #' @param rv Reactive values
+#' @param bau_impact BAU impact
+#' @param bau_cost BAU cost
 #' @inheritParams app
 #'
 #' @return Impact plot data
-df_pd <- function(df, rv, interventions, spatial_id){
+df_pd <- function(df, rv, interventions, spatial_id, bau_impact, bau_cost){
   out <- data.frame(
     x = unique(df[[spatial_id]])
   )
@@ -17,21 +19,21 @@ df_pd <- function(df, rv, interventions, spatial_id){
   out <- out |>
     dplyr::left_join(df, by = c(spatial_id, interventions))
 
-  cases_averted <- sum(out$cases_averted)
-  cases_averted_pc <- 100 * (cases_averted / rv$best[1])
-  deaths_averted <- sum(out$deaths_averted)
-  deaths_averted_pc <- 100 * (deaths_averted / rv$best[2])
+  cases <- sum(out$cases)
+  cases_change <- 100 * ((cases - bau_impact["cases"]) / bau_impact["cases"])
+  deaths <- sum(out$deaths)
+  deaths_change <- 100 * ((deaths - bau_impact["deaths"]) / bau_impact["deaths"])
   cost <- sum(out$cost)
-  cost_pc <- 100 * (cost / rv$budget)
+  cost_change <- 100 * ((cost - bau_cost) / bau_cost)
 
   pd <- data.frame(x = c(
-    "Budget\nspent",
-    "Cases\naverted",
-    "Deaths\naverted"),
+    "Budget",
+    "Cases",
+    "Deaths"),
     y = c(
-      cost_pc,
-      cases_averted_pc,
-      deaths_averted_pc
+      cost_change,
+      cases_change,
+      deaths_change
     )
   )
   return(pd)
@@ -44,8 +46,20 @@ df_pd <- function(df, rv, interventions, spatial_id){
 #'
 #' @return Vector of maximum cases and deaths averted
 get_max_impact <- function(df, spatial_id){
-  max_cases_averted <- sum(tapply(df$cases_averted, df[[spatial_id]], max))
-  max_deaths_averted <- sum(tapply(df$deaths_averted, df[[spatial_id]], max))
-  return(c(max_cases_averted, max_deaths_averted))
+  min_cases <- sum(tapply(df$cases, df[[spatial_id]], min))
+  min_deaths <- sum(tapply(df$deaths, df[[spatial_id]], min))
+  return(c(min_cases, min_deaths))
+}
+
+#' Current impact (BAU)
+#'
+#' @param df Input data
+#'
+#' @return Vector of maximum cases and deaths averted
+get_bau_impact <- function(df){
+  df_bau <- df[df$current == 1, ]
+  bau_cases <- sum(df_bau$cases)
+  bau_deaths <- sum(df_bau$deaths)
+  return(c(cases = bau_cases, deaths = bau_deaths))
 }
 

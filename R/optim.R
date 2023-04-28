@@ -22,11 +22,11 @@ mat <- function(unit, y){
 optimise <- function(df, target, budget, spatial_id){
   cost_matrix <- mat(df[[spatial_id]], df$cost)
   if(target == "Cases averted"){
-    z_matrix <- mat(df[[spatial_id]], df[["cases_averted"]])
+    z_matrix <- mat(df[[spatial_id]], df[["cases"]])
   } else {
-    z_matrix <- mat(df[[spatial_id]], df[["deaths_averted"]])
+    z_matrix <- mat(df[[spatial_id]], df[["deaths"]])
   }
-  optimised <- om::om(z = z_matrix, cost = cost_matrix, budget = budget) |>
+  optimised <- om::om(z = z_matrix, cost = cost_matrix, budget = budget, sense = "min") |>
     as.data.frame() |>
     dplyr::select(.data$i, .data$j) |>
     dplyr::left_join(df, by = c("i", "j"))
