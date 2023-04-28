@@ -8,16 +8,18 @@ set.seed(2810)
 df_mwi <- mwi |>
   sf::st_drop_geometry() |>
   dplyr::select(COUNTRY, ID_0, NAME_1) |>
-  dplyr::mutate(pop = round(runif(dplyr::n(), 1000, 10000))) |>
+  dplyr::mutate(pop = round(runif(dplyr::n(), 100000, 1000000))) |>
   tidyr::expand_grid(itn = 0:1, irs = 0:1) |>
   dplyr::group_by(COUNTRY, ID_0, NAME_1) |>
   dplyr::mutate(j = 1:dplyr::n()) |>
-  dplyr::mutate(current = ifelse(j == sample(1:dplyr::n(), 1, prob = itn + irs + 0.1), 1, 0)) |>
+  dplyr::mutate(current = ifelse(j == sample(1:dplyr::n(), 1, prob = itn + 0.1), 1, 0)) |>
   dplyr::ungroup() |>
   dplyr::mutate(
     i = match(NAME_1, unique(NAME_1)),
-    cases= round(runif(dplyr::n(), 0, 1) / (0.01 + (itn + irs) / 2) * pop),
-    deaths = round(runif(dplyr::n(), 0, 0.001) / (0.01 + (itn + irs) / 2) * pop),
+    cases = round(pop * 0.01 * runif(dplyr::n(), 0.9, 1.1) *
+      (1 - runif(dplyr::n(), 0.7, 0.9) * itn) *
+      (1 - runif(dplyr::n(), 0.7, 0.9) * irs)),
+    deaths = round(cases * runif(dplyr::n(), 0.002, 0.003)),
     cost = round((5 * pop * 0.5 * itn) +
                    (6 * pop * 0.5 * irs)))
 
@@ -33,7 +35,7 @@ set.seed(2810)
 df_sdn2 <- sdn2 |>
   sf::st_drop_geometry() |>
   dplyr::select(COUNTRY, ID_0, NAME_1, NAME_2, unique_id) |>
-  dplyr::mutate(pop = round(runif(dplyr::n(), 1000, 10000))) |>
+  dplyr::mutate(pop = round(runif(dplyr::n(), 100000, 1000000))) |>
   tidyr::expand_grid(itn = 0:1, irs = 0:1) |>
   dplyr::group_by(COUNTRY, ID_0, NAME_1, NAME_2, unique_id) |>
   dplyr::mutate(j = 1:dplyr::n()) |>
@@ -41,8 +43,10 @@ df_sdn2 <- sdn2 |>
   dplyr::ungroup() |>
   dplyr::mutate(
     i = match(unique_id, unique(unique_id)),
-    cases = round(runif(dplyr::n(), 0, 1) / (0.01 + (itn + irs) / 2) * pop),
-    deaths = round(runif(dplyr::n(), 0, 0.001) / (0.01 + (itn + irs) / 2) * pop),
+    cases = round(pop * 0.01 * runif(dplyr::n(), 0.9, 1.1) *
+                    (1 - runif(dplyr::n(), 0.7, 0.9) * itn) *
+                    (1 - runif(dplyr::n(), 0.7, 0.9) * irs)),
+    deaths = round(cases * runif(dplyr::n(), 0.002, 0.003)),
     cost = round((5 * pop * 0.5 * itn) +
                    (6 * pop * 0.5 * irs)))
 
