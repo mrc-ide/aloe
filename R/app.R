@@ -73,7 +73,7 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
         shiny::p("Choose to select all admin units or select admin units where intervention is currenly used using the buttons below the map."),
         shiny::p("Hover over an admin unit to see the CE ranking of all intervention options."),
         shiny::p("Choose to optimise all interventions for a given budget, minimising cases or deaths in the Optimisation section."),
-        shiny::p("View the cost and impact (as a % of maximum impact for the budget in the outcome plot")
+        shiny::p("View the cost and impact relative to the business as usual scenario in the outcome plot")
       )
     )
   )
