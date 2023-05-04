@@ -34,10 +34,10 @@ load("data/sdn2.rda")
 set.seed(2810)
 df_sdn2 <- sdn2 |>
   sf::st_drop_geometry() |>
-  dplyr::select(COUNTRY, ID_0, NAME_1, NAME_2, unique_id) |>
+  dplyr::select(country, name_1, name_2, unique_id) |>
   dplyr::mutate(pop = round(runif(dplyr::n(), 100000, 1000000))) |>
   tidyr::expand_grid(itn = 0:1, irs = 0:1) |>
-  dplyr::group_by(COUNTRY, ID_0, NAME_1, NAME_2, unique_id) |>
+  dplyr::group_by(country, name_1, name_2, unique_id) |>
   dplyr::mutate(j = 1:dplyr::n()) |>
   dplyr::mutate(current = ifelse(j == sample(1:dplyr::n(), 1, prob = itn + irs + 0.1), 1, 0)) |>
   dplyr::ungroup() |>
