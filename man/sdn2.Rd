@@ -5,7 +5,7 @@
 \alias{sdn2}
 \title{Spatial data SDN admin 2}
 \format{
-An object of class \code{sf} (inherits from \code{tbl_df}, \code{tbl}, \code{data.frame}) with 80 rows and 14 columns.
+An object of class \code{sf} (inherits from \code{data.frame}) with 189 rows and 6 columns.
 }
 \usage{
 sdn2

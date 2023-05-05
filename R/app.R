@@ -11,6 +11,11 @@
 #' @export
 app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME_1"){
 
+  n_strata <- max(df$strata)
+  strata_selection <- lapply(1:n_strata, function(x){
+    unlist(unique(df[df$strata >= x, spatial_id]))
+  })
+
   rankings <- get_ce_order(df, interventions, spatial_id)
 
   cols <- map_cols(interventions)
@@ -36,7 +41,7 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
             interventions,
             function(x){
               shiny::tabPanel(
-                x, mapUI(x)
+                x, mapUI(x, n_strata)
               )
             }
           )
@@ -114,7 +119,7 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
 
     # Map module
     for(i in interventions){
-      mapServer(i, rv, all, current, cols[i], rankings, spatial, spatial_id)
+      mapServer(i, rv, all, current, cols[i], rankings, spatial, spatial_id, n_strata, strata_selection)
     }
 
     # Impact

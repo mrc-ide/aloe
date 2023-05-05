@@ -4,7 +4,18 @@
 \alias{mapServer}
 \title{Map module server}
 \usage{
-mapServer(id, rv, all, current, col, rankings, spatial, spatial_id)
+mapServer(
+  id,
+  rv,
+  all,
+  current,
+  col,
+  rankings,
+  spatial,
+  spatial_id,
+  n_strata,
+  strata_selection
+)
 }
 \arguments{
 \item{id}{Intervention ID}
@@ -22,6 +33,10 @@ mapServer(id, rv, all, current, col, rankings, spatial, spatial_id)
 \item{spatial}{The sf spatial data}
 
 \item{spatial_id}{Name of unique spatial unit identifier column}
+
+\item{n_strata}{Number of stratification levels}
+
+\item{strata_selection}{List of selected subunits corresponding to strata selection buttons}
 }
 \description{
 Map module server

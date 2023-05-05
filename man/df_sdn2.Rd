@@ -5,7 +5,7 @@
 \alias{df_sdn2}
 \title{Output data sdn}
 \format{
-An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 320 rows and 14 columns.
+An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 756 rows and 14 columns.
 }
 \usage{
 df_sdn2

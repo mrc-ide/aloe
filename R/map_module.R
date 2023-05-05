@@ -1,7 +1,8 @@
 #' Map module UI
 #'
 #' @param id Intervention ID
-mapUI <- function(id){
+#' @param n_strata Number of stratification levels
+mapUI <- function(id, n_strata){
   shiny::tagList(
     shiny::column(
       8,
@@ -10,12 +11,20 @@ mapUI <- function(id){
         leaflet::leafletOutput(shiny::NS(id, "map"))
       ),
       shiny::fluidRow(
+        shiny::h6("Select multiple"),
         # Button to select all spatial units for given intervention
         shiny::actionButton(shiny::NS(id, "select_all"), paste0("Select all ", id)),
         # Button to select currently targeted spatial units for given intervention
         shiny::actionButton(shiny::NS(id, "select_current"), paste0("Select current ", id)),
         # Button to clear current selection of spatial units for given intervention
         shiny::actionButton(shiny::NS(id, "clear_selection"), paste0("Clear ", id)),
+      ),
+      shiny::fluidRow(
+        shiny::h6("Stratification selection"),
+        # Buttons for selecting strata
+        lapply(1:n_strata, function(x){
+          shiny::actionButton(shiny::NS(id, paste(x, "+")), paste0(x, "+"))
+        })
       )
     ),
     shiny::column(
@@ -35,8 +44,10 @@ mapUI <- function(id){
 #' @param current Current subunits
 #' @param col Intervention colour
 #' @param rankings CE ranking table
+#' @param n_strata Number of stratification levels
+#' @param strata_selection List of selected subunits corresponding to strata selection buttons
 #' @inheritParams app
-mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id){
+mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id, n_strata, strata_selection){
 
   shiny::moduleServer(id, function(input, output, session){
 
@@ -51,7 +62,6 @@ mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id){
       colnames(rank) <- hovered
       output$ranking <- shiny::renderTable(rank)
     })
-
 
     # Selecting or deselecting a clicked polygon
     shiny::observeEvent(input$map_shape_click, {
@@ -73,6 +83,12 @@ mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id){
     # Clear selection
     shiny::observeEvent(input$clear_selection, {
       rv$selection[[id]] <- NULL
+    })
+    # Strata selection
+    lapply(1:n_strata, function(x){
+      shiny::observeEvent(input[[paste(x, "+")]], {
+        rv$selection[[id]] <- strata_selection[[x]]
+      })
     })
 
     # Update the map
