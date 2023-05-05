@@ -5,7 +5,7 @@
 mapUI <- function(id, n_strata){
   shiny::tagList(
     shiny::column(
-      8,
+      12,
       shiny::fluidRow(
         # Map of selected spatial units
         leaflet::leafletOutput(shiny::NS(id, "map"))
@@ -26,12 +26,6 @@ mapUI <- function(id, n_strata){
           shiny::actionButton(shiny::NS(id, paste(x, "+")), paste0(x, "+"))
         })
       )
-    ),
-    shiny::column(
-      2,
-      shiny::h4("Cost effective ranking"),
-      # Show ranking of intervention0ons
-      shiny::tableOutput(shiny::NS(id, "ranking"))
     )
   )
 }
@@ -59,13 +53,6 @@ mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id, 
     output$map <- base_map(spatial_sub, bbox)
     shiny::outputOptions(output, "map", suspendWhenHidden = FALSE)
     pal <- leaflet::colorNumeric(c("black", col), 1:2)
-
-    shiny::observeEvent(input$map_shape_mouseover, {
-      hovered <- input$map_shape_mouseover$id
-      rank <- rankings[rankings[[spatial_id]] == hovered, "options"]
-      colnames(rank) <- hovered
-      output$ranking <- shiny::renderTable(rank)
-    })
 
     # Selecting or deselecting a clicked polygon
     shiny::observeEvent(input$map_shape_click, {
@@ -104,6 +91,7 @@ mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id, 
       leaflet::leafletProxy("map") |>
         leaflet::addPolygons(data = spatial_sub, stroke = TRUE, smoothFactor = 0.5,
                              opacity = 1, fill = TRUE, weight = 1,
+                             label = ~spatial_sub[[spatial_id]],
                              color = ~pal(fill_pd()), layerId = ~ spatial_sub[[spatial_id]])
     })
 

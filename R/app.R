@@ -16,6 +16,7 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
 
   n_strata <- max(df$strata)
 
+  all_units <- unique(df[[spatial_id]])
   # List of all (available) subunits for each intervention
   all <- lapply(interventions, function(x){
     options <- tapply(df[[x]], df[[spatial_id]], sum)
@@ -51,7 +52,7 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
     shiny::h1("!! Prototype - outputs are not real !!"),
     shiny::fluidRow(
       shiny::column(
-        7,
+        4,
         # Tabs for each intervention
         shiny::h4("Interventions"),
         do.call(
@@ -66,9 +67,28 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
           )
         )
       ),
+      shiny::column(
+        4,
+        # Tabs for each intervention
+        shiny::h4("Area summary"),
+        shinyWidgets::pickerInput(
+          inputId = "unitpick",
+          label = "Choose location",
+          choices = all_units,
+          options = list(
+            `live-search` = TRUE
+          )
+        ),
+        shiny::tableOutput("ranking"),
+        shinyWidgets::checkboxGroupButtons(
+          inputId = "buttons",
+          label = "Intervention selection",
+          choices = interventions
+        )
+      ),
 
       shiny::column(
-        5,
+        4,
         # Outcomes plot
         shiny::h4("Outcome"),
         shiny::headerPanel(""),
@@ -115,6 +135,42 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
     # To store best impact for a given budget and target
     rv$best <- max_impact
     rv$budget <- max_budget
+    rv$picked <- NULL
+
+    # Unit summary
+    shiny::observeEvent(input$unitpick, {
+      rv$picked <- input$unitpick
+    })
+
+
+    shiny::observe({
+      # CE ranking table
+      rank <- rankings[rankings[[spatial_id]] == rv$picked, "options"]
+      output$ranking <- shiny::renderTable(rank)
+
+      # Options summary
+      available <- interventions[sapply(all, function(x){
+        rv$picked %in% x
+      })]
+      selected <- interventions[sapply(rv$selection, function(x){
+        rv$picked %in% x
+      })]
+      shinyWidgets::updateCheckboxGroupButtons(inputId = "buttons", choices = available, selected = selected)
+    })
+
+    shiny::observeEvent(input$buttons, {
+      for(i in interventions){
+        button_selected <- i %in% input$buttons
+        # If selected and not in selection add
+        if(button_selected & !rv$picked %in% rv$selection[[i]]){
+          rv$selection[[i]] <- c(rv$selection[[i]], rv$picked)
+        }
+        if(!button_selected & rv$picked %in% rv$selection[[i]]){
+          rv$selection[[i]] <- setdiff(rv$selection[[i]], rv$picked)
+        }
+      }
+    }, ignoreNULL = FALSE)
+
 
     # Optimisation
     shiny::observeEvent(input$optimise, {
