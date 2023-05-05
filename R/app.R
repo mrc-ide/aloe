@@ -15,6 +15,22 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
   check_input_spatial(spatial, spatial_id)
 
   n_strata <- max(df$strata)
+
+  # List of all (available) subunits for each intervention
+  all <- lapply(interventions, function(x){
+    options <- tapply(df[[x]], df[[spatial_id]], sum)
+    names(options)[options > 0]
+  })
+  names(all) <- interventions
+
+  # List of currently implemented sub units for each intervention
+  current <- lapply(interventions, function(x){
+    df[[spatial_id]][df$current == 1 & df[[x]] == 1]
+  }
+  )
+  names(current) <- interventions
+
+  # List of subunits under each strata
   strata_selection <- lapply(1:n_strata, function(x){
     unlist(unique(df[df$strata >= x, spatial_id]))
   })
@@ -88,15 +104,6 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
 
 
   server <- function(input, output, session) {
-
-    # Index of all
-    all <- unique(df[[spatial_id]])
-    # List of present sub units for each intervention
-    current <- lapply(interventions, function(x){
-      df[[spatial_id]][df$current == 1 & df[[x]] == 1]
-      }
-    )
-    names(current) <- interventions
 
     # Initialise reactive values
     rv <- shiny::reactiveValues()

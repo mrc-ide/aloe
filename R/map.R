@@ -3,10 +3,8 @@
 #' Current fixed to render NAME_1 level
 #'
 #' @param spatial sf data
-base_map <- function(spatial){
-  bbox <- sf::st_bbox(spatial) |>
-    as.vector()
-
+#' @param bbox BOunding box extent
+base_map <- function(spatial, bbox){
   leaflet::renderLeaflet({
     leaflet::leaflet() |>
       leaflet::addTiles() |>

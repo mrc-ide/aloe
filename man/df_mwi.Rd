@@ -5,7 +5,7 @@
 \alias{df_mwi}
 \title{Output data MWI}
 \format{
-An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 112 rows and 13 columns.
+An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 98 rows and 13 columns.
 }
 \usage{
 df_mwi

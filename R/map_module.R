@@ -51,8 +51,12 @@ mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id, 
 
   shiny::moduleServer(id, function(input, output, session){
 
+    spatial_sub <- spatial[spatial[[spatial_id]] %in% all[[id]],]
+    bbox <- sf::st_bbox(spatial) |>
+      as.vector()
+
     # Plot the base map
-    output$map <- base_map(spatial)
+    output$map <- base_map(spatial_sub, bbox)
     shiny::outputOptions(output, "map", suspendWhenHidden = FALSE)
     pal <- leaflet::colorNumeric(c("black", col), 1:2)
 
@@ -74,7 +78,7 @@ mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id, 
     })
     # Select all
     shiny::observeEvent(input$select_all, {
-      rv$selection[[id]] <- all
+      rv$selection[[id]] <- all[[id]]
     })
     # Select current
     shiny::observeEvent(input$select_current, {
@@ -87,19 +91,20 @@ mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id, 
     # Strata selection
     lapply(1:n_strata, function(x){
       shiny::observeEvent(input[[paste(x, "+")]], {
-        rv$selection[[id]] <- strata_selection[[x]]
+        ss <- strata_selection[[x]]
+        rv$selection[[id]] <- ss[ss %in% all[[id]]]
       })
     })
 
     # Update the map
     fill_pd <- shiny::reactive(
-      ifelse(spatial[[spatial_id]] %in% rv$selection[[id]], 2, 1)
+      ifelse(spatial_sub[[spatial_id]] %in% rv$selection[[id]], 2, 1)
     )
     shiny::observe({
       leaflet::leafletProxy("map") |>
-        leaflet::addPolygons(data = spatial, stroke = TRUE, smoothFactor = 0.5,
+        leaflet::addPolygons(data = spatial_sub, stroke = TRUE, smoothFactor = 0.5,
                              opacity = 1, fill = TRUE, weight = 1,
-                             color = ~pal(fill_pd()), layerId = ~ spatial[[spatial_id]])
+                             color = ~pal(fill_pd()), layerId = ~ spatial_sub[[spatial_id]])
     })
 
   })

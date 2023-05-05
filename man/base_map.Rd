@@ -4,10 +4,12 @@
 \alias{base_map}
 \title{Render the base map layer}
 \usage{
-base_map(spatial)
+base_map(spatial, bbox)
 }
 \arguments{
 \item{spatial}{sf data}
+
+\item{bbox}{BOunding box extent}
 }
 \description{
 Current fixed to render NAME_1 level

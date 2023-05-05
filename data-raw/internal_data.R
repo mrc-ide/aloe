@@ -9,7 +9,9 @@ df_mwi <- mwi |>
   sf::st_drop_geometry() |>
   dplyr::select(COUNTRY, ID_0, NAME_1) |>
   dplyr::mutate(pop = round(runif(dplyr::n(), 100000, 1000000))) |>
-  tidyr::expand_grid(itn = 0:1, irs = 0:1) |>
+  tidyr::expand_grid(itn = 0:1, smc = 0:1) |>
+  # Subset only some areas for SMC
+  dplyr::filter(!(smc == 1 & NAME_1 %in% c("Karonga", "Chitipa", "Rumphi", "Mzimba", "Nkhata Bay", "Nkhotakota", "Kasungu"))) |>
   dplyr::group_by(COUNTRY, ID_0, NAME_1) |>
   dplyr::mutate(j = 1:dplyr::n(),
                 strata = sample(1:4, 1)
@@ -20,10 +22,10 @@ df_mwi <- mwi |>
     i = match(NAME_1, unique(NAME_1)),
     cases = round(pop * 0.01 * runif(dplyr::n(), 0.9, 1.1) *
       (1 - runif(dplyr::n(), 0.7, 0.9) * itn) *
-      (1 - runif(dplyr::n(), 0.7, 0.9) * irs)),
+      (1 - runif(dplyr::n(), 0.7, 0.9) * smc)),
     deaths = round(cases * runif(dplyr::n(), 0.002, 0.003)),
     cost = round((5 * pop * 0.5 * itn) +
-                   (6 * pop * 0.5 * irs))
+                   (6 * pop * 0.5 * smc))
   )
 
 usethis::use_data(df_mwi, overwrite = TRUE)
