@@ -92,10 +92,11 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
     # Index of all
     all <- unique(df[[spatial_id]])
     # List of present sub units for each intervention
-    current <- list(
-      itn = df[[spatial_id]][df$current == 1 & df$itn == 1],
-      irs = df[[spatial_id]][df$current == 1 & df$irs == 1]
+    current <- lapply(interventions, function(x){
+      df[[spatial_id]][df$current == 1 & df[[x]] == 1]
+      }
     )
+    names(current) <- interventions
 
     # Initialise reactive values
     rv <- shiny::reactiveValues()
