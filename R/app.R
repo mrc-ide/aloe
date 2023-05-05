@@ -11,6 +11,9 @@
 #' @export
 app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME_1"){
 
+  check_input_df(df, spatial_id)
+  check_input_spatial(spatial, spatial_id)
+
   n_strata <- max(df$strata)
   strata_selection <- lapply(1:n_strata, function(x){
     unlist(unique(df[df$strata >= x, spatial_id]))
