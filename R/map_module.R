@@ -2,7 +2,7 @@
 #'
 #' @param id Intervention ID
 #' @param n_strata Number of stratification levels
-mapUI <- function(id, n_strata){
+mapUI <- function(id, n_strata, admin_units){
   shiny::tagList(
     shiny::column(
       8,
@@ -11,7 +11,7 @@ mapUI <- function(id, n_strata){
         leaflet::leafletOutput(shiny::NS(id, "map"))
       ),
       shiny::fluidRow(
-        shiny::h6("Select multiple"),
+        shiny::h4("Select multiple"),
         # Button to select all spatial units for given intervention
         shiny::actionButton(shiny::NS(id, "select_all"), paste0("Select all ", id)),
         # Button to select currently targeted spatial units for given intervention
@@ -20,11 +20,20 @@ mapUI <- function(id, n_strata){
         shiny::actionButton(shiny::NS(id, "clear_selection"), paste0("Clear ", id)),
       ),
       shiny::fluidRow(
-        shiny::h6("Stratification selection"),
+        shiny::h5("Stratification selection"),
         # Buttons for selecting strata
         lapply(1:n_strata, function(x){
           shiny::actionButton(shiny::NS(id, paste(x, "+")), paste0(x, "+"))
         })
+      ),
+      shiny::fluidRow(
+        # Dropdown to select multiple units by name
+        shinyWidgets::pickerInput(
+          inputId = shiny::NS(id, "select_list"),
+          label = "Select admin unit(s)",
+          choices = admin_units,
+          multiple = TRUE
+        )
       )
     ),
     shiny::column(
@@ -47,7 +56,7 @@ mapUI <- function(id, n_strata){
 #' @param n_strata Number of stratification levels
 #' @param strata_selection List of selected subunits corresponding to strata selection buttons
 #' @inheritParams app
-mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id, n_strata, strata_selection){
+mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id, n_strata, strata_selection, session){
 
   shiny::moduleServer(id, function(input, output, session){
 
@@ -94,6 +103,25 @@ mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id, 
         ss <- strata_selection[[x]]
         rv$selection[[id]] <- ss[ss %in% all[[id]]]
       })
+    })
+    # List selection
+    observeEvent(input$select_list_open, {
+      # Only update when list is closed
+      if (!(input$select_list_open)) {
+        rv$selection[[id]] <- input$select_list
+      }
+    })
+    # Update selections in list in background
+    shiny::observe({
+      picked <- rv$selection[[id]]
+      if(is.null(picked)){
+        picked <- ""
+      }
+      shinyWidgets::updatePickerInput(
+        session = session,
+        inputId = "select_list",
+        selected = picked
+      )
     })
 
     # Update the map

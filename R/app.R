@@ -60,7 +60,7 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
             interventions,
             function(x){
               shiny::tabPanel(
-                x, mapUI(x, n_strata)
+                x, mapUI(x, n_strata, all[x])
               )
             }
           )
@@ -130,7 +130,7 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
 
     # Map module
     for(i in interventions){
-      mapServer(i, rv, all, current, cols[i], rankings, spatial, spatial_id, n_strata, strata_selection)
+      mapServer(i, rv, all, current, cols[i], rankings, spatial, spatial_id, n_strata, strata_selection, session)
     }
 
     # Impact
