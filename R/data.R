@@ -17,8 +17,3 @@
 #'
 #' A data.frame
 "df_sdn2"
-
-#' Stratification colour palette
-#'
-#' A vector
-"stratification_colours"
