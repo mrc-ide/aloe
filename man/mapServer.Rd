@@ -14,7 +14,9 @@ mapServer(
   spatial,
   spatial_id,
   n_strata,
-  strata_selection
+  strata_selection,
+  bbox,
+  session
 )
 }
 \arguments{
@@ -37,6 +39,10 @@ mapServer(
 \item{n_strata}{Number of stratification levels}
 
 \item{strata_selection}{List of selected subunits corresponding to strata selection buttons}
+
+\item{bbox}{Map bounding box}
+
+\item{session}{app session}
 }
 \description{
 Map module server

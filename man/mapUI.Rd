@@ -4,12 +4,14 @@
 \alias{mapUI}
 \title{Map module UI}
 \usage{
-mapUI(id, n_strata)
+mapUI(id, n_strata, admin_units)
 }
 \arguments{
 \item{id}{Intervention ID}
 
 \item{n_strata}{Number of stratification levels}
+
+\item{admin_units}{Available spatial unit names}
 }
 \description{
 Map module UI

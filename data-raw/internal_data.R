@@ -59,3 +59,7 @@ df_sdn2 <- sdn2 |>
   )
 
 usethis::use_data(df_sdn2, overwrite = TRUE)
+
+stratification_colours <- c("#33a52a", "#b7de8d", "#fe7e00", "#d21e24")
+names(stratification_colours) <- paste(1:4)
+usethis::use_data(stratification_colours, overwrite = TRUE)

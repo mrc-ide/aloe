@@ -15,6 +15,8 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
   check_input_spatial(spatial, spatial_id)
 
   n_strata <- max(df$strata)
+  bbox <- sf::st_bbox(spatial) |>
+    as.vector()
 
   # List of all (available) subunits for each intervention
   all <- lapply(interventions, function(x){
@@ -50,57 +52,74 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
 
     shiny::h1("!! Prototype - outputs are not real !!"),
     shiny::fluidRow(
-      shiny::column(
-        7,
-        # Tabs for each intervention
-        shiny::h4("Interventions"),
-        do.call(
-          shiny::tabsetPanel,
-          lapply(
-            interventions,
-            function(x){
+      shiny::tabsetPanel(
+        shiny::tabPanel(
+          "Instructions",
+          shiny::column(
+            10,
+            shiny::br(),
+            shiny::br(),
+            shiny::h4("Instructions"),
+            shiny::p("Choose where interventions are implemented by clicking on admin units in the interventions tabs."),
+            shiny::p("Choose to select all admin units or select admin units where intervention is currenly used using the buttons below the map."),
+            shiny::p("Hover over an admin unit to see the CE ranking of all intervention options."),
+            shiny::p("Choose to optimise all interventions for a given budget, minimising cases or deaths in the Optimisation section."),
+            shiny::p("View the cost and impact relative to the business as usual scenario in the outcome plot")
+          )
+        ),
+        shiny::tabPanel(
+          "Stratification",
+          shiny::column(
+            4,
+            shiny::br(),
+            shiny::br(),
+            shiny::tabsetPanel(
               shiny::tabPanel(
-                x, mapUI(x, n_strata, all[x])
+                "Stratification map",
+                # Map of selected spatial units
+                leaflet::leafletOutput("stratification_map"),
+                shiny::br(),
+                shiny::br(),
+                shiny::br(),
+                shiny::br(),
+                shiny::h4("Optimisation"),
+                shiny::column(2, shiny::numericInput("budget", "Budget", min = 0, max = max_budget, value = max_budget)),
+                shiny::column(3, shiny::radioButtons("target", "Target", choices = list("Cases averted", "Deaths averted"))),
+                shiny::column(2, shiny::actionButton("optimise", "Optimise"))
               )
-            }
+            )
+          ),
+          shiny::column(
+            6,
+            shiny::h4("Intervention targeting"),
+            do.call(
+              shiny::tabsetPanel,
+              lapply(
+                interventions,
+                function(x){
+                  shiny::tabPanel(
+                    x, mapUI(x, n_strata, all[x])
+                  )
+                }
+              )
+            )
+          )
+        ),
+        shiny::tabPanel(
+          "Outcomes",
+          shiny::column(
+            6,
+            # Outcomes plot
+            shiny::h4("Outcome"),
+            shiny::headerPanel(""),
+            shiny::headerPanel(""),
+            shiny::plotOutput("impact_plot")
           )
         )
-      ),
-
-      shiny::column(
-        5,
-        # Outcomes plot
-        shiny::h4("Outcome"),
-        shiny::headerPanel(""),
-        shiny::headerPanel(""),
-        shiny::plotOutput("impact_plot")
-
-      ),
-    ),
-    # Options to optimise for a given budget
-    shiny::fluidRow(
-      shiny::column(
-        6,
-        shiny::br(),
-        shiny::br(),
-        shiny::h4("Optimisation"),
-        shiny::column(2, shiny::numericInput("budget", "Budget", min = 0, max = max_budget, value = max_budget)),
-        shiny::column(3, shiny::radioButtons("target", "Target", choices = list("Cases averted", "Deaths averted"))),
-        shiny::column(2, shiny::actionButton("optimise", "Optimise"))
-      ),
-      shiny::column(
-        6,
-        shiny::br(),
-        shiny::br(),
-        shiny::h4("Instructions"),
-        shiny::p("Choose where interventions are implemented by clicking on admin units in the interventions tabs."),
-        shiny::p("Choose to select all admin units or select admin units where intervention is currenly used using the buttons below the map."),
-        shiny::p("Hover over an admin unit to see the CE ranking of all intervention options."),
-        shiny::p("Choose to optimise all interventions for a given budget, minimising cases or deaths in the Optimisation section."),
-        shiny::p("View the cost and impact relative to the business as usual scenario in the outcome plot")
       )
     )
   )
+
 
 
   server <- function(input, output, session) {
@@ -116,6 +135,16 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
     rv$best <- max_impact
     rv$budget <- max_budget
 
+    # Stratification map
+    output$stratification_map <- leaflet::renderLeaflet({
+      stratification_map(
+        spatial = spatial,
+        df = df,
+        spatial_id = spatial_id,
+        n_strata = n_strata,
+        bbox = bbox)
+    })
+
     # Optimisation
     shiny::observeEvent(input$optimise, {
       # Run optimisation
@@ -130,7 +159,7 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
 
     # Map module
     for(i in interventions){
-      mapServer(i, rv, all, current, cols[i], rankings, spatial, spatial_id, n_strata, strata_selection, session)
+      mapServer(i, rv, all, current, cols[i], rankings, spatial, spatial_id, n_strata, strata_selection, bbox, session)
     }
 
     # Impact

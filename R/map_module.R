@@ -2,6 +2,7 @@
 #'
 #' @param id Intervention ID
 #' @param n_strata Number of stratification levels
+#' @param admin_units Available spatial unit names
 mapUI <- function(id, n_strata, admin_units){
   shiny::tagList(
     shiny::column(
@@ -55,14 +56,14 @@ mapUI <- function(id, n_strata, admin_units){
 #' @param rankings CE ranking table
 #' @param n_strata Number of stratification levels
 #' @param strata_selection List of selected subunits corresponding to strata selection buttons
+#' @param bbox Map bounding box
+#' @param session app session
 #' @inheritParams app
-mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id, n_strata, strata_selection, session){
+mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id, n_strata, strata_selection, bbox, session){
 
   shiny::moduleServer(id, function(input, output, session){
 
     spatial_sub <- spatial[spatial[[spatial_id]] %in% all[[id]],]
-    bbox <- sf::st_bbox(spatial) |>
-      as.vector()
 
     # Plot the base map
     output$map <- base_map(spatial_sub, bbox)
@@ -105,7 +106,7 @@ mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id, 
       })
     })
     # List selection
-    observeEvent(input$select_list_open, {
+    shiny::observeEvent(input$select_list_open, {
       # Only update when list is closed
       if (!(input$select_list_open)) {
         rv$selection[[id]] <- input$select_list
