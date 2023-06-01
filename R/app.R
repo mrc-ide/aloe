@@ -69,39 +69,47 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
         ),
         shiny::tabPanel(
           "Stratification",
-          shiny::column(
-            4,
-            shiny::br(),
-            shiny::br(),
-            shiny::tabsetPanel(
-              shiny::tabPanel(
-                "Stratification map",
-                # Map of selected spatial units
-                leaflet::leafletOutput("stratification_map"),
-                shiny::br(),
-                shiny::br(),
-                shiny::br(),
-                shiny::br(),
-                shiny::h4("Optimisation"),
-                shiny::column(2, shiny::numericInput("budget", "Budget", min = 0, max = max_budget, value = max_budget)),
-                shiny::column(3, shiny::radioButtons("target", "Target", choices = list("Cases averted", "Deaths averted"))),
-                shiny::column(2, shiny::actionButton("optimise", "Optimise"))
+          shiny::fluidRow(
+            shiny::column(
+              6,
+              shiny::br(),
+              shiny::br(),
+              shiny::tabsetPanel(
+                shiny::tabPanel(
+                  "Stratification map",
+                  # Map of selected spatial units
+                  leaflet::leafletOutput("stratification_map"),
+                  shiny::br(),
+                  shiny::h4("Cost effective ranking (hover mouse on map)"),
+                  # Show ranking of intervention0ons
+                  shiny::tableOutput("ranking")
+                )
+              )
+            ),
+            shiny::column(
+              6,
+              shiny::h4("Intervention targeting"),
+              do.call(
+                shiny::tabsetPanel,
+                lapply(
+                  interventions,
+                  function(x){
+                    shiny::tabPanel(
+                      x, mapUI(x, n_strata, all[x])
+                    )
+                  }
+                )
               )
             )
           ),
-          shiny::column(
-            6,
-            shiny::h4("Intervention targeting"),
-            do.call(
-              shiny::tabsetPanel,
-              lapply(
-                interventions,
-                function(x){
-                  shiny::tabPanel(
-                    x, mapUI(x, n_strata, all[x])
-                  )
-                }
-              )
+          shiny::hr(),
+          shiny::fluidRow(
+            shiny::column(
+              12,
+              shiny::h4("Optimisation"),
+              shiny::column(2, shiny::numericInput("budget", "Budget", min = 0, max = max_budget, value = max_budget)),
+              shiny::column(3, shiny::radioButtons("target", "Target", choices = list("Cases averted", "Deaths averted"))),
+              shiny::column(2, shiny::actionButton("optimise", "Optimise"))
             )
           )
         ),
@@ -143,6 +151,13 @@ app <- function(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME
         spatial_id = spatial_id,
         n_strata = n_strata,
         bbox = bbox)
+    })
+    # Hover for CE ranking
+    shiny::observeEvent(input$stratification_map_shape_mouseover, {
+      hovered <- input$stratification_map_shape_mouseover$id
+      rank <- rankings[rankings[[spatial_id]] == hovered, "options"]
+      colnames(rank) <- hovered
+      output$ranking <- shiny::renderTable(rank)
     })
 
     # Optimisation

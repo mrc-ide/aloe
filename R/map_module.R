@@ -5,43 +5,34 @@
 #' @param admin_units Available spatial unit names
 mapUI <- function(id, n_strata, admin_units){
   shiny::tagList(
-    shiny::column(
-      8,
-      shiny::fluidRow(
-        # Map of selected spatial units
-        leaflet::leafletOutput(shiny::NS(id, "map"))
-      ),
-      shiny::fluidRow(
-        shiny::h4("Select multiple"),
-        # Button to select all spatial units for given intervention
-        shiny::actionButton(shiny::NS(id, "select_all"), paste0("Select all ", id)),
-        # Button to select currently targeted spatial units for given intervention
-        shiny::actionButton(shiny::NS(id, "select_current"), paste0("Select current ", id)),
-        # Button to clear current selection of spatial units for given intervention
-        shiny::actionButton(shiny::NS(id, "clear_selection"), paste0("Clear ", id)),
-      ),
-      shiny::fluidRow(
-        shiny::h5("Stratification selection"),
-        # Buttons for selecting strata
-        lapply(1:n_strata, function(x){
-          shiny::actionButton(shiny::NS(id, paste(x, "+")), paste0(x, "+"))
-        })
-      ),
-      shiny::fluidRow(
-        # Dropdown to select multiple units by name
-        shinyWidgets::pickerInput(
-          inputId = shiny::NS(id, "select_list"),
-          label = "Select admin unit(s)",
-          choices = admin_units,
-          multiple = TRUE
-        )
-      )
+    shiny::fluidRow(
+      # Map of selected spatial units
+      leaflet::leafletOutput(shiny::NS(id, "map"))
     ),
-    shiny::column(
-      2,
-      shiny::h4("Cost effective ranking"),
-      # Show ranking of intervention0ons
-      shiny::tableOutput(shiny::NS(id, "ranking"))
+    shiny::fluidRow(
+      shiny::h4("Select multiple"),
+      # Button to select all spatial units for given intervention
+      shiny::actionButton(shiny::NS(id, "select_all"), paste0("Select all ", id)),
+      # Button to select currently targeted spatial units for given intervention
+      shiny::actionButton(shiny::NS(id, "select_current"), paste0("Select current ", id)),
+      # Button to clear current selection of spatial units for given intervention
+      shiny::actionButton(shiny::NS(id, "clear_selection"), paste0("Clear ", id)),
+    ),
+    shiny::fluidRow(
+      shiny::h5("Stratification selection"),
+      # Buttons for selecting strata
+      lapply(1:n_strata, function(x){
+        shiny::actionButton(shiny::NS(id, paste(x, "+")), paste0(x, "+"))
+      })
+    ),
+    shiny::fluidRow(
+      # Dropdown to select multiple units by name
+      shinyWidgets::pickerInput(
+        inputId = shiny::NS(id, "select_list"),
+        label = "Select admin unit(s)",
+        choices = admin_units,
+        multiple = TRUE
+      )
     )
   )
 }
@@ -69,13 +60,6 @@ mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id, 
     output$map <- base_map(spatial_sub, bbox)
     shiny::outputOptions(output, "map", suspendWhenHidden = FALSE)
     pal <- leaflet::colorNumeric(c("black", col), 1:2)
-
-    shiny::observeEvent(input$map_shape_mouseover, {
-      hovered <- input$map_shape_mouseover$id
-      rank <- rankings[rankings[[spatial_id]] == hovered, "options"]
-      colnames(rank) <- hovered
-      output$ranking <- shiny::renderTable(rank)
-    })
 
     # Selecting or deselecting a clicked polygon
     shiny::observeEvent(input$map_shape_click, {

@@ -49,7 +49,8 @@ stratification_map <- function(spatial, df, spatial_id, n_strata, bbox){
       fill = TRUE,
       weight = 1,
       fillOpacity = 0.9,
-      fillColor = ~stratification_palette(stratification_data$strata)
+      fillColor = ~stratification_palette(stratification_data$strata),
+      layerId = ~ stratification_data[[spatial_id]]
     ) |>
     leaflet::addLegend(
       position = "bottomright",
