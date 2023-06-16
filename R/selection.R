@@ -45,9 +45,9 @@ df_pd <- function(df, rv, interventions, spatial_id, bau_impact, bau_cost){
 #' @inheritParams app
 #'
 #' @return Vector of maximum cases and deaths averted
-get_max_impact <- function(df, spatial_id){
-  min_cases <- sum(tapply(df$cases, df[[spatial_id]], min))
-  min_deaths <- sum(tapply(df$deaths, df[[spatial_id]], min))
+get_max_impact <- function(df){
+  min_cases <- sum(tapply(df$cases, df[["spatial_id"]], min))
+  min_deaths <- sum(tapply(df$deaths, df[["spatial_id"]], min))
   return(c(min_cases, min_deaths))
 }
 

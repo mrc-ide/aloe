@@ -63,3 +63,7 @@ usethis::use_data(df_sdn2, overwrite = TRUE)
 stratification_colours <- c("#33a52a", "#b7de8d", "#fe7e00", "#d21e24")
 names(stratification_colours) <- paste(1:4)
 usethis::use_data(stratification_colours, overwrite = TRUE, internal = TRUE)
+
+intervention_mix_colours <- c("#D9D9D9", "#8DD3C7", "#BEBADA", "#FB8072", "#80B1D3", "#FDB462",
+                              "#B3DE69", "#FCCDE5",  "#BC80BD", "#CCEBC5", "#FFED6F", "#FFFFB3")
+usethis::use_data(intervention_mix_colours, overwrite = TRUE, internal = TRUE)

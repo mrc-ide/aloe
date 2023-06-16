@@ -2,36 +2,42 @@
 #'
 #' @param id Intervention ID
 #' @param n_strata Number of stratification levels
-#' @param admin_units Available spatial unit names
+#' @param admin_units spatial spatial unit names
 mapUI <- function(id, n_strata, admin_units){
   shiny::tagList(
     shiny::fluidRow(
-      # Map of selected spatial units
-      leaflet::leafletOutput(shiny::NS(id, "map"))
-    ),
-    shiny::fluidRow(
-      shiny::h4("Select multiple"),
-      # Button to select all spatial units for given intervention
-      shiny::actionButton(shiny::NS(id, "select_all"), paste0("Select all ", id)),
-      # Button to select currently targeted spatial units for given intervention
-      shiny::actionButton(shiny::NS(id, "select_current"), paste0("Select current ", id)),
-      # Button to clear current selection of spatial units for given intervention
-      shiny::actionButton(shiny::NS(id, "clear_selection"), paste0("Clear ", id)),
-    ),
-    shiny::fluidRow(
-      shiny::h5("Stratification selection"),
-      # Buttons for selecting strata
-      lapply(1:n_strata, function(x){
-        shiny::actionButton(shiny::NS(id, paste(x, "+")), paste0(x, "+"))
-      })
-    ),
-    shiny::fluidRow(
-      # Dropdown to select multiple units by name
-      shinyWidgets::pickerInput(
-        inputId = shiny::NS(id, "select_list"),
-        label = "Select admin unit(s)",
-        choices = admin_units,
-        multiple = TRUE
+      shiny::column(
+        6,
+        # Map of selected spatial units
+        leaflet::leafletOutput(shiny::NS(id, "map"))
+      ),
+      shiny::column(
+        6,
+        shiny::fluidRow(
+          shiny::h5("Multiple selection"),
+          # Button to select all spatial units for given intervention
+          shiny::actionButton(shiny::NS(id, "select_all"), paste0("Select all ", id)),
+          # Button to select currently targeted spatial units for given intervention
+          shiny::actionButton(shiny::NS(id, "select_current"), paste0("Select current ", id)),
+          # Button to clear current selection of spatial units for given intervention
+          shiny::actionButton(shiny::NS(id, "clear_selection"), paste0("Clear ", id)),
+        ),
+        shiny::fluidRow(
+          shiny::h5("Stratification selection"),
+          # Buttons for selecting strata
+          lapply(1:n_strata, function(x){
+            shiny::actionButton(shiny::NS(id, paste(x, "+")), paste0(x, "+"))
+          })
+        ),
+        shiny::fluidRow(
+          shiny::h5("List selection"),
+          # Dropdown to select multiple units by name
+          shinyWidgets::pickerInput(
+            inputId = shiny::NS(id, "select_list"),
+            choices = admin_units,
+            multiple = TRUE
+          )
+        )
       )
     )
   )
@@ -50,55 +56,75 @@ mapUI <- function(id, n_strata, admin_units){
 #' @param bbox Map bounding box
 #' @param session app session
 #' @inheritParams app
-mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id, n_strata, strata_selection, bbox, session){
-
+mapServer <- function(id, rv, current_matrix, strata_matrix, col, spatial, bbox, n_strata, session){
   shiny::moduleServer(id, function(input, output, session){
-
-    spatial_sub <- spatial[spatial[[spatial_id]] %in% all[[id]],]
+    spatial <- spatial
 
     # Plot the base map
-    output$map <- base_map(spatial_sub, bbox)
+    output$map <- leaflet::renderLeaflet({
+      base_map(spatial, bbox)
+    })
     shiny::outputOptions(output, "map", suspendWhenHidden = FALSE)
-    pal <- leaflet::colorNumeric(c("black", col), 1:2)
+    pal <- c("black", col)
+    names(pal) <- NULL
 
     # Selecting or deselecting a clicked polygon
     shiny::observeEvent(input$map_shape_click, {
-      clicked <- input$map_shape_click$id
-      if(clicked %in% rv$selection[[id]]){
-        rv$selection[[id]] <- setdiff(rv$selection[[id]], clicked)
-      } else {
-        rv$selection[[id]] <- c(rv$selection[[id]], clicked)
-      }
+      new <- reverse(
+        mat = rv(),
+        intervention = id,
+        units = input$map_shape_click$id
+      )
+      rv(new)
     })
     # Select all
     shiny::observeEvent(input$select_all, {
-      rv$selection[[id]] <- all[[id]]
+      new <- select(
+        mat = rv(),
+        intervention = id
+      )
+      rv(new)
     })
     # Select current
     shiny::observeEvent(input$select_current, {
-      rv$selection[[id]] <- current[[id]]
+      new <- rv()
+      new[,id] <- current_matrix[,id]
+      rv(new)
     })
     # Clear selection
     shiny::observeEvent(input$clear_selection, {
-      rv$selection[[id]] <- NULL
+      new <- clear(
+        mat = rv(),
+        intervention = id
+      )
+      rv(new)
     })
     # Strata selection
     lapply(1:n_strata, function(x){
       shiny::observeEvent(input[[paste(x, "+")]], {
-        ss <- strata_selection[[x]]
-        rv$selection[[id]] <- ss[ss %in% all[[id]]]
+        new <- rv()
+        new[,id] <- strata_matrix[[x]][,id]
+        rv(new)
       })
     })
     # List selection
     shiny::observeEvent(input$select_list_open, {
       # Only update when list is closed
       if (!(input$select_list_open)) {
-        rv$selection[[id]] <- input$select_list
+        new <- clear(
+          mat = rv(),
+          intervention = id
+        ) |>
+          select(
+            intervention = id,
+            units = input$select_list
+          )
+        rv(new)
       }
     })
     # Update selections in list in background
-    shiny::observe({
-      picked <- rv$selection[[id]]
+    shiny::observeEvent(rv(), {
+      picked <- implemented(mat = rv(), intervention = id)
       if(is.null(picked)){
         picked <- ""
       }
@@ -110,15 +136,19 @@ mapServer <- function(id, rv, all, current, col, rankings, spatial, spatial_id, 
     })
 
     # Update the map
-    fill_pd <- shiny::reactive(
-      ifelse(spatial_sub[[spatial_id]] %in% rv$selection[[id]], 2, 1)
-    )
-    shiny::observe({
+    shiny::observeEvent(rv(), {
+      fill <- pal[ifelse(spatial[["spatial_id"]] %in% implemented(rv(), id), 2, 1)]
       leaflet::leafletProxy("map") |>
-        leaflet::addPolygons(data = spatial_sub, stroke = TRUE, smoothFactor = 0.5,
-                             opacity = 1, fill = TRUE, weight = 1,
-                             color = ~pal(fill_pd()), layerId = ~ spatial_sub[[spatial_id]])
+        leaflet::addPolygons(
+          data = spatial,
+          stroke = TRUE,
+          smoothFactor = 0.5,
+          opacity = 1,
+          fill = TRUE,
+          weight = 1,
+          color = ~fill,
+          layerId = ~ spatial[["spatial_id"]]
+        )
     })
-
   })
 }

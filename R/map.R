@@ -5,11 +5,9 @@
 #' @param spatial sf data
 #' @param bbox BOunding box extent
 base_map <- function(spatial, bbox){
-  leaflet::renderLeaflet({
-    leaflet::leaflet() |>
-      leaflet::addTiles() |>
-      leaflet::fitBounds(bbox[1], bbox[2], bbox[3], bbox[4])
-  })
+  leaflet::leaflet() |>
+    leaflet::addTiles() |>
+    leaflet::fitBounds(bbox[1], bbox[2], bbox[3], bbox[4])
 }
 
 #' Draw map colours
@@ -29,12 +27,11 @@ map_cols <- function(interventions){
 #'
 #' @param spatial The sf spatial data
 #' @param df The simulation bank
-#' @param spatial_id Name of unique spatial unit identifier column
 #' @param n_strata Number of strata
 #' @param bbox Bounding box for map
-stratification_map <- function(spatial, df, spatial_id, n_strata, bbox){
+stratification_map <- function(spatial, df, n_strata, bbox){
   stratification_data <- spatial |>
-    dplyr::left_join(unique(df[,c(spatial_id, "strata")]), by = spatial_id) |>
+    dplyr::left_join(unique(df[,c("spatial_id", "strata")]), by = "spatial_id") |>
     dplyr::mutate(strata = factor(.data$strata))
   stratification_palette <- leaflet::colorFactor(stratification_colours, 1:n_strata)
 
@@ -50,7 +47,7 @@ stratification_map <- function(spatial, df, spatial_id, n_strata, bbox){
       weight = 1,
       fillOpacity = 0.9,
       fillColor = ~stratification_palette(stratification_data$strata),
-      layerId = ~ stratification_data[[spatial_id]]
+      layerId = ~ stratification_data[["spatial_id"]]
     ) |>
     leaflet::addLegend(
       position = "bottomright",
@@ -59,5 +56,4 @@ stratification_map <- function(spatial, df, spatial_id, n_strata, bbox){
       opacity = 1,
       title = "Strata"
     )
-
 }
