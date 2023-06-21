@@ -37,8 +37,14 @@ reverse <- function(mat, intervention, units = NULL){
   return(mat)
 }
 
+# Pull out names of spatial units where an intervention is implemented
 implemented <- function(mat, intervention){
   rownames(mat)[mat[,intervention]]
+}
+
+# Multiply the boolean choice matrix by the coverage vector
+apply_coverage <- function(rv, coverage){
+  sweep(rv, 2, coverage, "*")
 }
 
 # This will include a * coverage step
@@ -56,15 +62,16 @@ create_current_matrix <- function(df, units, interventions){
     units = units,
     interventions = interventions
   )
+  df_bau <- df[df$scenario == "bau", ]
   for(i in interventions){
-    current_mat <- select(current_mat, i, df[df[["current"]] == 1 & df[[i]] == 1, ][["spatial_id"]])
+    current_mat <- select(current_mat, i, unique(df_bau[df_bau[[i]] > 0, ][["spatial_id"]]))
   }
   return(current_mat)
 }
 
 
 # Create the strata matrices
-create_strata_matrix <- function(df, units, interventions){
+create_strata_matrix <- function(df, units, interventions, available){
   n_strata <- max(df$strata)
   strata_mat <- lapply(1:n_strata, function(x){
     strata_mat <- init_matrix(
@@ -72,7 +79,8 @@ create_strata_matrix <- function(df, units, interventions){
       interventions = interventions
     )
     for(i in interventions){
-      strata_mat <- select(strata_mat, i, df[df[["strata"]] >= x, ][["spatial_id"]])
+      to_select <- intersect(unique(df[df[["strata"]] >= x, ][["spatial_id"]]), available[[i]])
+      strata_mat <- select(strata_mat, i, to_select)
     }
     strata_mat
   })

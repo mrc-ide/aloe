@@ -57,3 +57,8 @@ stratification_map <- function(spatial, df, n_strata, bbox){
       title = "Strata"
     )
 }
+
+lighter_col = function(color, how.much = 30){
+  rev(colorRampPalette(c("white", color))(100))[how.much]
+}
+

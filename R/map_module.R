@@ -3,7 +3,7 @@
 #' @param id Intervention ID
 #' @param n_strata Number of stratification levels
 #' @param admin_units spatial spatial unit names
-mapUI <- function(id, n_strata, admin_units){
+mapUI <- function(id, n_strata, admin_units, col){
   shiny::tagList(
     shiny::fluidRow(
       shiny::column(
@@ -14,7 +14,7 @@ mapUI <- function(id, n_strata, admin_units){
       shiny::column(
         6,
         shiny::fluidRow(
-          shiny::h5("Multiple selection"),
+          shiny::h5("Multiple selection", style = paste0("color: ", col, ";")),
           # Button to select all spatial units for given intervention
           shiny::actionButton(shiny::NS(id, "select_all"), paste0("Select all ", id)),
           # Button to select currently targeted spatial units for given intervention
@@ -23,19 +23,29 @@ mapUI <- function(id, n_strata, admin_units){
           shiny::actionButton(shiny::NS(id, "clear_selection"), paste0("Clear ", id)),
         ),
         shiny::fluidRow(
-          shiny::h5("Stratification selection"),
+          shiny::h5("Stratification selection", style = paste0("color: ", col, ";")),
           # Buttons for selecting strata
           lapply(1:n_strata, function(x){
             shiny::actionButton(shiny::NS(id, paste(x, "+")), paste0(x, "+"))
           })
         ),
         shiny::fluidRow(
-          shiny::h5("List selection"),
+          shiny::h5("List selection", style = paste0("color: ", col, ";")),
           # Dropdown to select multiple units by name
           shinyWidgets::pickerInput(
             inputId = shiny::NS(id, "select_list"),
             choices = admin_units,
             multiple = TRUE
+          )
+        ),
+        shiny::fluidRow(
+          shiny::h5("Coverage", style = paste0("color: ", col, ";")),
+          shinyWidgets::sliderTextInput(
+            inputId = shiny::NS(id, "coverage_slider"),
+            choices = c(0, 50, 100),
+            label = NULL,
+            grid = TRUE,
+            hide_min_max = TRUE
           )
         )
       )
@@ -47,6 +57,7 @@ mapUI <- function(id, n_strata, admin_units){
 #'
 #' @param id Intervention ID
 #' @param rv Reactive values
+#' @param coverage coverage reactive values
 #' @param all All subunits
 #' @param current Current subunits
 #' @param col Intervention colour
@@ -56,7 +67,7 @@ mapUI <- function(id, n_strata, admin_units){
 #' @param bbox Map bounding box
 #' @param session app session
 #' @inheritParams app
-mapServer <- function(id, rv, current_matrix, strata_matrix, col, spatial, bbox, n_strata, session){
+mapServer <- function(id, rv, coverage, current_matrix, strata_matrix, col, spatial, bbox, n_strata, session){
   shiny::moduleServer(id, function(input, output, session){
     spatial <- spatial
 
@@ -81,7 +92,8 @@ mapServer <- function(id, rv, current_matrix, strata_matrix, col, spatial, bbox,
     shiny::observeEvent(input$select_all, {
       new <- select(
         mat = rv(),
-        intervention = id
+        intervention = id,
+        units = unique(spatial$spatial_id)
       )
       rv(new)
     })
@@ -134,6 +146,14 @@ mapServer <- function(id, rv, current_matrix, strata_matrix, col, spatial, bbox,
         selected = picked
       )
     })
+    # Update coverage selection
+    shiny::observeEvent(input$coverage_slider, {
+      new_coverage <- coverage()
+      new_coverage[id] <-input$coverage_slider
+      coverage(new_coverage)
+    },
+    ignoreInit = TRUE
+    )
 
     # Update the map
     shiny::observeEvent(rv(), {
