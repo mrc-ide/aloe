@@ -46,6 +46,10 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
     available = available
   )
 
+  coverage_choices <- lapply(interventions, function(x){
+    unique(df[df$scenario == "bank", x])
+  })
+  names(coverage_choices) <- interventions
 
   bounding_box <- as.vector(sf::st_bbox(spatial))
 
@@ -67,68 +71,68 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
 
   cols <- map_cols(interventions)
 
-  ui <- shiny::fluidPage(
+  ui <- shiny::navbarPage(
+    "SNT modelling",
 
-    # Intervention tab font colours
-    tags$style(
-      HTML(
-        paste0(".tabbable > .nav > li > a[data-value='", interventions, "'] {color:", cols, "}")
-      )
-    ),
-    # Intervention slider colours
-    shinyWidgets::setSliderColor(cols, 1:length(interventions)),
     # General theme
-    theme = shinythemes::shinytheme("slate"),
+    theme = shinythemes::shinytheme("flatly"),
 
-    shiny::tabsetPanel(
-      shiny::tabPanel(
-        "Instructions",
-        shiny::br(),
-        shiny::h4("Interventions"),
-        shiny::p("For each intervention choose where interventions are implemented"),
-        shiny::p("Selections can be made by clicking on the map, using the buttons or via drop down list"),
-        shiny::br(),
-        shiny::h4("Impact"),
-        shiny::p("Click the generate impact button to view theimpact of the current selection")
-      ),
-      shiny::tabPanel(
-        "Interventions",
+    shiny::tabPanel(
+      "Instructions",
+      shiny::br(),
+      shiny::h4("Interventions"),
+      shiny::p("For each intervention choose where interventions are implemented"),
+      shiny::p("Selections can be made by clicking on the map, using the buttons or via drop down list"),
+      shiny::br(),
+      shiny::h4("Impact"),
+      shiny::p("Click the generate impact button to view theimpact of the current selection")
+    ),
+    shiny::tabPanel(
+      "Interventions",
 
-        shiny::fluidRow(
-          shiny::column(
-            12,
-            shiny::h4("Intervention targeting"),
-            do.call(
-              shiny::tabsetPanel,
-              lapply(
-                interventions,
-                function(x){
-                  shiny::tabPanel(
-                    x, mapUI(x, n_strata, available[x], cols[x])
-                  )
-                }
-              )
+      shiny::fluidRow(
+        shiny::column(
+          12,
+          shiny::h4("Intervention targeting"),
+          # Intervention tab font colours
+          shiny::tags$style(
+            shiny::HTML(
+              paste0(".tabbable > .nav > li > a[data-value='", interventions, "'] {color:", cols, "}")
             )
-          )
-        ),
-        shiny::fluidRow(
-          shiny::column(
-            6,
-            shiny::h4("Stratification map"),
-            # Map of selected spatial units
-            leaflet::leafletOutput("stratification_map"),
           ),
-          shiny::column(
-            6,
-            shiny::h4("Intervention mix map"),
-            # Map of intervention mix for spatial units
-            leaflet::leafletOutput("intervention_mix_map"),
+          # Intervention slider colours
+          shinyWidgets::setSliderColor(cols, 1:length(interventions)),
+          do.call(
+            shiny::tabsetPanel,
+            lapply(
+              interventions,
+              function(x){
+                shiny::tabPanel(
+                  x, mapUI(x, n_strata, available[x], coverage_choices[[x]], cols[x])
+                )
+              }
+            )
           )
         )
       ),
-      shiny::tabPanel(
-        "Impact"
+      shiny::fluidRow(
+        shiny::column(
+          6,
+          shiny::h4("Stratification map"),
+          # Map of selected spatial units
+          leaflet::leafletOutput("stratification_map"),
+        ),
+        shiny::column(
+          6,
+          shiny::h4("Intervention mix map"),
+          # Map of intervention mix for spatial units
+          leaflet::leafletOutput("intervention_mix_map"),
+        )
       )
+    ),
+    shiny::tabPanel(
+      "Impact",
+      impactUI("impact")
     )
   )
 
@@ -206,6 +210,9 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
         session
       )
     }
+
+    impactServer("impact", rv, coverage, df)
+
 
   }
 

@@ -48,12 +48,22 @@ apply_coverage <- function(rv, coverage){
 }
 
 # This will include a * coverage step
-link <- function(mat, df){
+link <- function(mat, coverage, df){
+  cov_mat <- apply_coverage(mat, coverage)
+
   choice_df <- data.frame(
-    spatial_id = row.names(mat),
-    mat + 0
+    spatial_id = row.names(cov_mat),
+    cov_mat,
+    scenario = "bank"
   )
-  dplyr::left_join(choice_df, df, by = colnames(choice_df))
+  rownames(choice_df) <- NULL
+
+  impact <- choice_df |>
+    dplyr::left_join(df, by = colnames(choice_df)) |>
+    dplyr::bind_rows(dplyr::filter(df, scenario != "bank")) |>
+    dplyr::summarise(inc = mean(inc), .by = c("scenario", "year"))
+
+  return(impact)
 }
 
 # Create the current matrix

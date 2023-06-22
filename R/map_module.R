@@ -3,7 +3,7 @@
 #' @param id Intervention ID
 #' @param n_strata Number of stratification levels
 #' @param admin_units spatial spatial unit names
-mapUI <- function(id, n_strata, admin_units, col){
+mapUI <- function(id, n_strata, admin_units, coverage_choices, col){
   shiny::tagList(
     shiny::fluidRow(
       shiny::column(
@@ -42,7 +42,7 @@ mapUI <- function(id, n_strata, admin_units, col){
           shiny::h5("Coverage", style = paste0("color: ", col, ";")),
           shinyWidgets::sliderTextInput(
             inputId = shiny::NS(id, "coverage_slider"),
-            choices = c(0, 50, 100),
+            choices = coverage_choices * 100,
             label = NULL,
             grid = TRUE,
             hide_min_max = TRUE
