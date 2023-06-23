@@ -1,162 +1,53 @@
-test_that("matrix creation works", {
-  units <- letters
-  interventions <- c("tx", "itn", "smc")
-  choice_matrix <- create_choice_matrix(
-    units = units,
-    interventions = interventions
-  )
-  expect_type(choice_matrix, "logical")
-  expect_equal(dim(choice_matrix), c(26, 3))
-  expect_equal(mean(choice_matrix), 0)
-  expect_equal(colnames(choice_matrix), interventions)
-  expect_equal(rownames(choice_matrix), units)
+test_that("init_matrix creates a matrix with correct dimensions and names", {
+  units <- c("Unit1", "Unit2", "Unit3")
+  interventions <- c("Intervention1", "Intervention2", "Intervention3")
+
+  mat <- init_matrix(units, interventions)
+
+  expect_type(mat, "logical")
+  expect_equal(nrow(mat), length(units))
+  expect_equal(ncol(mat), length(interventions))
+  expect_equal(dimnames(mat)[[1]], units)
+  expect_equal(dimnames(mat)[[2]], interventions)
 })
 
-test_that("matrix reversal works", {
-  m <- matrix(c(TRUE, FALSE, TRUE, FALSE), ncol = 2)
-  rownames(m) <- c("a", "b")
-  colnames(m) <- c("tx", "itn")
+test_that("init_matrix creates a matrix with all values initialized to FALSE", {
+  units <- c("Unit1", "Unit2", "Unit3")
+  interventions <- c("Intervention1", "Intervention2", "Intervention3")
 
-  # Reverse all
-  expect_equal(
-    reverse_selection(
-      choice_matrix = m
-    ),
-    !m
-  )
+  mat <- init_matrix(units, interventions)
 
-  # Reverse selected row
-  m2 <- m
-  m2[1,] <- !m2[1,]
-  expect_equal(
-    reverse_selection(
-      choice_matrix = m,
-      rows = "a"
-    ),
-    m2
-  )
-
-  # Reverse selected col
-  m3 <- m
-  m3[,1] <- !m3[,1]
-  expect_equal(
-    reverse_selection(
-      choice_matrix = m,
-      cols = "tx"
-    ),
-    m3
-  )
-
-  # Reverse selected row and col
-  m4 <- m
-  m4[1, 1] <- !m4[1, 1]
-  expect_equal(
-    reverse_selection(
-      choice_matrix = m,
-      rows = "a",
-      cols = "tx"
-    ),
-    m4
-  )
+  expect_equal(all(mat == FALSE), TRUE)
 })
 
-test_that("matrix clear works", {
-  m <- matrix(c(TRUE, FALSE, TRUE, FALSE), ncol = 2)
-  rownames(m) <- c("a", "b")
-  colnames(m) <- c("tx", "itn")
+test_that("init_matrix throws an error when units or interventions is empty", {
+  units <- character(0)
+  interventions <- c("Intervention1", "Intervention2", "Intervention3")
 
-  # Reverse all
-  m1 <- m
-  m1[,] <- FALSE
-  expect_equal(
-    clear_selection(
-      choice_matrix = m
-    ),
-    m1
-  )
+  expect_error(init_matrix(units, interventions),
+               "length(units) > 0",
+               fixed = TRUE)
 
-  # Reverse selected row
-  m2 <- m
-  m2[1,] <- FALSE
-  expect_equal(
-    clear_selection(
-      choice_matrix = m,
-      rows = "a"
-    ),
-    m2
-  )
+  units <- c("Unit1", "Unit2", "Unit3")
+  interventions <- character(0)
 
-  # Reverse selected col
-  m3 <- m
-  m3[,1] <- FALSE
-  expect_equal(
-    clear_selection(
-      choice_matrix = m,
-      cols = "tx"
-    ),
-    m3
-  )
-
-  # Reverse selected row and col
-  m4 <- m
-  m4[1, 1] <- FALSE
-  expect_equal(
-    clear_selection(
-      choice_matrix = m,
-      rows = "a",
-      cols = "tx"
-    ),
-    m4
-  )
+  expect_error(init_matrix(units, interventions),
+               "length(interventions) > 0",
+               fixed = TRUE)
 })
 
+test_that("init_matrix throws an error when units or interventions are not character vectors", {
+  units <- c("Unit1", "Unit2", "Unit3")
+  interventions <- 1:3
 
-test_that("matrix all works", {
-  m <- matrix(c(TRUE, FALSE, TRUE, FALSE), ncol = 2)
-  rownames(m) <- c("a", "b")
-  colnames(m) <- c("tx", "itn")
+  expect_error(init_matrix(units, interventions),
+               "is.character(interventions) is not TRUE",
+               fixed = TRUE)
 
-  # Reverse all
-  m1 <- m
-  m1[,] <- TRUE
-   expect_equal(
-    all_selection(
-      choice_matrix = m
-    ),
-    m1
-  )
+  units <- 1:3
+  interventions <- c("Intervention1", "Intervention2", "Intervention3")
 
-  # Reverse selected row
-  m2 <- m
-  m2[1,] <- TRUE
-  expect_equal(
-    all_selection(
-      choice_matrix = m,
-      rows = "a"
-    ),
-    m2
-  )
-
-  # Reverse selected col
-  m3 <- m
-  m3[,1] <- TRUE
-  expect_equal(
-    all_selection(
-      choice_matrix = m,
-      cols = "tx"
-    ),
-    m3
-  )
-
-  # Reverse selected row and col
-  m4 <- m
-  m4[1, 1] <- TRUE
-  expect_equal(
-    all_selection(
-      choice_matrix = m,
-      rows = "a",
-      cols = "tx"
-    ),
-    m4
-  )
+  expect_error(init_matrix(units, interventions),
+               "is.character(units) is not TRUE",
+               fixed = TRUE)
 })

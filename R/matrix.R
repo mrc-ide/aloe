@@ -1,4 +1,15 @@
+#' Initialise a spatial unit x interventions boolean matrix
+#'
+#' @param units Vector of spatial unit names
+#' @param interventions Vector of intervention names
+#'
+#' @return Boolean matrix
 init_matrix <- function(units, interventions){
+  stopifnot(length(units) > 0)
+  stopifnot(length(interventions) > 0)
+  stopifnot(is.character(units))
+  stopifnot(is.character(interventions))
+
   mat <- matrix(
     data = FALSE,
     nrow = length(units),
@@ -10,6 +21,11 @@ init_matrix <- function(units, interventions){
   )
 }
 
+#' Clear the intervention matrix for selected intervention and spatial unit
+#' combinations
+#' @param mat choice matix
+#' @param intervention Intervention name
+#' @param units Vector of spatial unit names
 clear <- function(mat, intervention, units = NULL){
   stopifnot(length(intervention) == 1)
   if(is.null(units)){
@@ -19,6 +35,11 @@ clear <- function(mat, intervention, units = NULL){
   return(mat)
 }
 
+#' Select the intervention matrix for selected intervention and spatial unit
+#' combinations
+#' @param mat choice matix
+#' @param intervention Intervention name
+#' @param units Vector of spatial unit names
 select <- function(mat, intervention, units = NULL){
   stopifnot(length(intervention) == 1)
   if(is.null(units)){
@@ -28,6 +49,12 @@ select <- function(mat, intervention, units = NULL){
   return(mat)
 }
 
+#' Reverse the intervention matrix for selected intervention and spatial unit
+#' combinations
+#'
+#' @param mat choice matix
+#' @param intervention Intervention name
+#' @param units Vector of spatial unit names
 reverse <- function(mat, intervention, units = NULL){
   stopifnot(length(intervention) == 1)
   if(is.null(units)){
@@ -37,17 +64,21 @@ reverse <- function(mat, intervention, units = NULL){
   return(mat)
 }
 
-# Pull out names of spatial units where an intervention is implemented
+#' Pull out names of spatial units where an intervention is implemented
+#' @param mat choice matix
+#' @param intervention Intervention name
 implemented <- function(mat, intervention){
   rownames(mat)[mat[,intervention]]
 }
 
-# Multiply the boolean choice matrix by the coverage vector
+#' Multiply the boolean choice matrix by the coverage vector
+#' @param rv Reactive coverage vector
+#' @param coverage Reactive choice matrix
 apply_coverage <- function(rv, coverage){
   sweep(rv, 2, coverage, "*")
 }
 
-# This will include a * coverage step
+# Link the choice matrix to the input data.frame
 link <- function(mat, coverage, df){
   cov_mat <- apply_coverage(mat, coverage)
 
@@ -60,13 +91,13 @@ link <- function(mat, coverage, df){
 
   impact <- choice_df |>
     dplyr::left_join(df, by = colnames(choice_df)) |>
-    dplyr::bind_rows(dplyr::filter(df, scenario != "bank")) |>
-    dplyr::summarise(inc = mean(inc), .by = c("scenario", "year"))
+    dplyr::bind_rows(dplyr::filter(df, .data$scenario != "bank")) |>
+    dplyr::summarise(inc = mean(.data$inc), .by = c("scenario", "year"))
 
   return(impact)
 }
 
-# Create the current matrix
+# Create the matrix of currently implemented areas
 create_current_matrix <- function(df, units, interventions){
   current_mat <- init_matrix(
     units = units,
@@ -78,7 +109,6 @@ create_current_matrix <- function(df, units, interventions){
   }
   return(current_mat)
 }
-
 
 # Create the strata matrices
 create_strata_matrix <- function(df, units, interventions, available){

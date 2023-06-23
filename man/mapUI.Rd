@@ -4,14 +4,18 @@
 \alias{mapUI}
 \title{Map module UI}
 \usage{
-mapUI(id, n_strata, admin_units)
+mapUI(id, n_strata, admin_units, coverage_choices, col)
 }
 \arguments{
 \item{id}{Intervention ID}
 
 \item{n_strata}{Number of stratification levels}
 
-\item{admin_units}{Available spatial unit names}
+\item{admin_units}{spatial spatial unit names}
+
+\item{coverage_choices}{Reactive coverage choices}
+
+\item{col}{intervention colour}
 }
 \description{
 Map module UI

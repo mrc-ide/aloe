@@ -4,14 +4,12 @@
 \alias{stratification_map}
 \title{Create strata map}
 \usage{
-stratification_map(spatial, df, spatial_id, n_strata, bbox)
+stratification_map(spatial, df, n_strata, bbox)
 }
 \arguments{
 \item{spatial}{The sf spatial data}
 
 \item{df}{The simulation bank}
-
-\item{spatial_id}{Name of unique spatial unit identifier column}
 
 \item{n_strata}{Number of strata}
 

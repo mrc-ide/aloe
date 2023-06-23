@@ -1,5 +1,7 @@
+#' Impact module UI
+#'
+#' @param id Impact ID
 impactUI <- function(id){
-
   shiny::tagList(
     shinyjs::useShinyjs(),
     shiny::fluidRow(
@@ -24,6 +26,12 @@ impactUI <- function(id){
   )
 }
 
+#' Impact module UI
+#'
+#' @param id Impact ID
+#' @param rv Reactive values
+#' @param coverage coverage reactive values
+#' @param df The simulation bank
 impactServer <- function(id, rv, coverage, df){
   shiny::moduleServer(id, function(input, output, session){
     shiny::observeEvent(input$impact_button, {

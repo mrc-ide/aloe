@@ -12,5 +12,5 @@ base_map(spatial, bbox)
 \item{bbox}{BOunding box extent}
 }
 \description{
-Current fixed to render NAME_1 level
+Render the base map layer
 }

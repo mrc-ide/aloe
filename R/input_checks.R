@@ -16,10 +16,7 @@ check_input_df <- function(input_df, spatial_id){
   df_names <- names(input_df)
   col_check("strata", df_names)
   col_check(spatial_id, df_names)
-  col_check("current", df_names)
-  col_check("cost", df_names)
-  col_check("cases", df_names)
-  col_check("deaths", df_names)
+  col_check("scenario", df_names)
 }
 
 #' Column checks spatial input

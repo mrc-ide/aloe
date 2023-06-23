@@ -7,15 +7,13 @@
 mapServer(
   id,
   rv,
-  all,
-  current,
+  coverage,
+  current_matrix,
+  strata_matrix,
   col,
-  rankings,
   spatial,
-  spatial_id,
-  n_strata,
-  strata_selection,
   bbox,
+  n_strata,
   session
 )
 }
@@ -24,23 +22,19 @@ mapServer(
 
 \item{rv}{Reactive values}
 
-\item{all}{All subunits}
+\item{coverage}{coverage reactive values}
 
-\item{current}{Current subunits}
+\item{current_matrix}{Current implemented areas}
+
+\item{strata_matrix}{Strata matrices}
 
 \item{col}{Intervention colour}
 
-\item{rankings}{CE ranking table}
-
-\item{spatial}{The sf spatial data}
-
-\item{spatial_id}{Name of unique spatial unit identifier column}
-
-\item{n_strata}{Number of stratification levels}
-
-\item{strata_selection}{List of selected subunits corresponding to strata selection buttons}
+\item{spatial}{Spatial data for intervention}
 
 \item{bbox}{Map bounding box}
+
+\item{n_strata}{Number of stratification levels}
 
 \item{session}{app session}
 }

@@ -2,11 +2,12 @@
 set.seed(1)
 
 # Get sf
-load("data/mwi.rda")
+mwi <- readRDS("data-raw/mwi.rds")
 
 generate_data <- function(spatial, spatial_id,
                           interventions = c("itn", "smc"),
                           coverages = list(itn = c(0, 0.5, 1), smc = c(0, 0.9)),
+                          bau_coverages = list(itn = 0.47, smc = 0.8),
                           years = 2020:2030,
                           strata = 1:4){
   spatial$spatial_id <- spatial[[spatial_id]]
@@ -63,7 +64,19 @@ df_mwi <- generate_data(mwi, "NAME_1")
 stratification_colours <- c("#33a52a", "#b7de8d", "#fe7e00", "#d21e24")
 names(stratification_colours) <- paste(1:4)
 
+intervention_colours <- c("#45b0cf","#855fce","#5ebe8b","#c65fb4","#c55a7f","#468045", "#7680c9")
+names(intervention_colours)[1:3] <- c("itn", "smc", "irs")
+
 intervention_mix_colours <- c("#D9D9D9", "#8DD3C7", "#BEBADA", "#FB8072", "#80B1D3", "#FDB462",
                               "#B3DE69", "#FCCDE5",  "#BC80BD", "#CCEBC5", "#FFED6F", "#FFFFB3")
 
-usethis::use_data(intervention_mix_colours, stratification_colours, df_mwi, overwrite = TRUE, internal = TRUE)
+impact_colours <- rev(RColorBrewer::brewer.pal(10, "PiYG"))
+
+usethis::use_data(intervention_colours,
+                  intervention_mix_colours,
+                  stratification_colours,
+                  mwi,
+                  df_mwi,
+                  impact_colours,
+                  overwrite = TRUE,
+                  internal = TRUE)

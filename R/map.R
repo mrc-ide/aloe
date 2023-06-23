@@ -1,26 +1,11 @@
 #' Render the base map layer
 #'
-#' Current fixed to render NAME_1 level
-#'
 #' @param spatial sf data
 #' @param bbox BOunding box extent
 base_map <- function(spatial, bbox){
   leaflet::leaflet() |>
     leaflet::addTiles() |>
     leaflet::fitBounds(bbox[1], bbox[2], bbox[3], bbox[4])
-}
-
-#' Draw map colours
-#'
-#' Each of up to a maximum of 8 interventions is assigned a named colour
-#'
-#' @param interventions Vector of interventions
-#'
-#' @return A colour vector
-map_cols <- function(interventions){
-  cols <- RColorBrewer::brewer.pal(n = 8, name = "Dark2")[1:length(interventions)]
-  names(cols) <- interventions
-  return(cols)
 }
 
 #' Create strata map
@@ -58,7 +43,59 @@ stratification_map <- function(spatial, df, n_strata, bbox){
     )
 }
 
-lighter_col = function(color, how.much = 30){
-  rev(colorRampPalette(c("white", color))(100))[how.much]
+#' Create the intervention mix map
+#'
+#' @param spatial The sf spatial data
+#' @param bbox Bounding box for map
+#' @param mix_options Vector of possible intervention mixes
+#' @param cols Vector of mix option colours
+intervention_mix_map <- function(spatial, bbox, mix_options, cols){
+  base_map(
+    spatial = spatial,
+    bbox = bbox
+  ) |>
+    leaflet::addLegend(
+      position = "bottomright",
+      values = mix_options,
+      colors = cols[mix_options],
+      labels = mix_options,
+      opacity = 1,
+      title = "Mix"
+    )
+}
+
+#' Update the intervention mix map
+#'
+#' @param rv The reactive choice matrix
+#' @param spatial The sf spatial data
+#' @param interventions Interventions vector
+#' @param bbox Bounding box for map
+#' @param mix_options Vector of possible intervention mixes
+#' @param cols Vector of mix option colours
+update_intervention_mix_map <- function(rv, spatial, interventions, bbox, mix_options, cols){
+  current_mix <- apply(rv(), 1, function(x){
+    if(sum(x) == 0){
+      out <- "none"
+    } else {
+      out <- paste(interventions[x], collapse = " + ")
+    }
+    return(out)
+  })
+  cols <- cols[current_mix]
+  names(cols) <- NULL
+
+  leaflet::leafletProxy("intervention_mix_map") |>
+    leaflet::addPolygons(
+      data = spatial,
+      stroke = TRUE,
+      color = "black",
+      smoothFactor = 0.5,
+      opacity = 1,
+      fill = TRUE,
+      weight = 1,
+      fillOpacity = 0.9,
+      fillColor = ~cols,
+      layerId = ~ spatial[["spatial_id"]]
+    )
 }
 

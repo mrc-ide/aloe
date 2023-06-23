@@ -3,6 +3,8 @@
 #' @param id Intervention ID
 #' @param n_strata Number of stratification levels
 #' @param admin_units spatial spatial unit names
+#' @param coverage_choices Reactive coverage choices
+#' @param col intervention colour
 mapUI <- function(id, n_strata, admin_units, coverage_choices, col){
   shiny::tagList(
     shiny::fluidRow(
@@ -58,15 +60,13 @@ mapUI <- function(id, n_strata, admin_units, coverage_choices, col){
 #' @param id Intervention ID
 #' @param rv Reactive values
 #' @param coverage coverage reactive values
-#' @param all All subunits
-#' @param current Current subunits
+#' @param current_matrix Current implemented areas
+#' @param strata_matrix Strata matrices
 #' @param col Intervention colour
-#' @param rankings CE ranking table
+#' @param spatial Spatial data for intervention
 #' @param n_strata Number of stratification levels
-#' @param strata_selection List of selected subunits corresponding to strata selection buttons
 #' @param bbox Map bounding box
 #' @param session app session
-#' @inheritParams app
 mapServer <- function(id, rv, coverage, current_matrix, strata_matrix, col, spatial, bbox, n_strata, session){
   shiny::moduleServer(id, function(input, output, session){
     spatial <- spatial

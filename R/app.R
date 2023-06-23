@@ -11,7 +11,7 @@
 #' @export
 app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spatial_id = "NAME_1"){
 
-  #check_input_df(df, spatial_id)
+  check_input_df(df, spatial_id)
   check_input_spatial(spatial, spatial_id)
 
   # Set a consistent names column as the spatial id
@@ -69,7 +69,7 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
   intervention_mix_palette <- intervention_mix_colours[1:length(mix_options)]
   names(intervention_mix_palette) <- mix_options
 
-  cols <- map_cols(interventions)
+  cols <- intervention_colours[interventions]
 
   ui <- shiny::navbarPage(
     "SNT modelling",
@@ -154,45 +154,24 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
 
     # Intervention_mix map
     output$intervention_mix_map <- leaflet::renderLeaflet({
-      base_map(
+      intervention_mix_map(
         spatial = spatial,
-        bbox = bounding_box
-      ) |>
-        leaflet::addLegend(
-          position = "bottomright",
-          values = mix_options,
-          colors = intervention_mix_palette[mix_options],
-          labels = mix_options,
-          opacity = 1,
-          title = "Mix"
-        )
+        bbox = bounding_box,
+        mix_options = mix_options,
+        cols = intervention_mix_palette
+      )
     })
-    outputOptions(output, "intervention_mix_map", suspendWhenHidden = FALSE)
-    shiny::observeEvent(rv(), {
-      current_mix <- apply(rv(), 1, function(x){
-        if(sum(x) == 0){
-          out <- "none"
-        } else {
-          out <- paste(interventions[x], collapse = " + ")
-        }
-        return(out)
-      })
-      cols <- intervention_mix_palette[current_mix]
-      names(cols) <- NULL
+    shiny::outputOptions(output, "intervention_mix_map", suspendWhenHidden = FALSE)
 
-      leaflet::leafletProxy("intervention_mix_map") |>
-        leaflet::addPolygons(
-          data = spatial,
-          stroke = TRUE,
-          color = "black",
-          smoothFactor = 0.5,
-          opacity = 1,
-          fill = TRUE,
-          weight = 1,
-          fillOpacity = 0.9,
-          fillColor = ~cols,
-          layerId = ~ spatial[["spatial_id"]]
-        )
+    shiny::observeEvent(rv(), {
+      update_intervention_mix_map(
+        rv = rv,
+        spatial = spatial,
+        interventions = interventions,
+        bbox = bounding_box,
+        mix_options = mix_options,
+        cols = intervention_mix_palette
+      )
     })
 
     # Map module
@@ -211,10 +190,8 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
       )
     }
 
+    # Ipact
     impactServer("impact", rv, coverage, df)
-
-
   }
-
   shiny::shinyApp(ui, server)
 }

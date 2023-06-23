@@ -4,7 +4,12 @@
 \alias{app}
 \title{App}
 \usage{
-app(spatial, df, interventions = c("itn", "irs"), spatial_id = "NAME_1")
+app(
+  spatial = mwi,
+  df = df_mwi,
+  interventions = c("itn", "smc"),
+  spatial_id = "NAME_1"
+)
 }
 \arguments{
 \item{spatial}{The sf spatial data}
