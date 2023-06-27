@@ -1,0 +1,44 @@
+---
+title: "report"
+author: "Aloe"
+date: "`r Sys.Date()`"
+output: html_document
+params:
+  rv: NA
+  spatial: NA
+  bbox: NA
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(aloe)
+```
+
+## R Markdown
+
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+params$rv
+```
+
+
+```{r, echo=FALSE}
+pal <- c("black", aloe:::intervention_colours["itn"])
+names(pal) <- NULL
+fill <- pal[ifelse(params$spatial[["spatial_id"]] %in% aloe:::implemented(params$rv, "itn"), 2, 1)]
+aloe:::base_map(params$spatial, params$bbox) |>
+  leaflet::addPolygons(
+    data = params$spatial,
+    stroke = TRUE,
+    smoothFactor = 0.5,
+    opacity = 1,
+    fill = TRUE,
+    weight = 1,
+    color = ~ fill,
+    layerId = ~ params$spatial[["spatial_id"]]
+  )
+```
+

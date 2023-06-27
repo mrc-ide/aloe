@@ -25,26 +25,24 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
     units = units,
     interventions = interventions
   )
-
+  # Block unavailable interventions
+  for(x in interventions){
+    available <- unique(df[df[x] > 0 & df$scenario == "bank", "spatial_id"])
+    current_matrix[!rownames(current_matrix) %in% available, x] <- NA
+  }
   # Where user input selections will be recorded
   choice_matrix <- current_matrix
+
+  # Strata matrices
+  n_strata <- max(df$strata)
+  strata_matrix <- create_strata_matrix(
+    df,
+    current_matrix
+  )
 
   # Coverage vector
   coverage <- rep(0, length(interventions))
   names(coverage) <- interventions
-
-  available <- lapply(interventions, function(x){
-    unique(df[df[x] > 0 & df$scenario == "bank", "spatial_id"])
-  })
-  names(available) <- interventions
-
-  n_strata <- max(df$strata)
-  strata_matrix <- create_strata_matrix(
-    df = df,
-    units = units,
-    interventions = interventions,
-    available = available
-  )
 
   coverage_choices <- lapply(interventions, function(x){
     unique(df[df$scenario == "bank", x])
@@ -69,7 +67,6 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
   intervention_mix_palette <- intervention_mix_colours[1:length(mix_options)]
   names(intervention_mix_palette) <- mix_options
 
-  cols <- intervention_colours[interventions]
 
   ui <- shiny::navbarPage(
     "SNT modelling",
@@ -77,16 +74,8 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
     # General theme
     theme = shinythemes::shinytheme("flatly"),
 
-    shiny::tabPanel(
-      "Instructions",
-      shiny::br(),
-      shiny::h4("Interventions"),
-      shiny::p("For each intervention choose where interventions are implemented"),
-      shiny::p("Selections can be made by clicking on the map, using the buttons or via drop down list"),
-      shiny::br(),
-      shiny::h4("Impact"),
-      shiny::p("Click the generate impact button to view theimpact of the current selection")
-    ),
+    instructionsUI,
+
     shiny::tabPanel(
       "Interventions",
 
@@ -97,18 +86,18 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
           # Intervention tab font colours
           shiny::tags$style(
             shiny::HTML(
-              paste0(".tabbable > .nav > li > a[data-value='", interventions, "'] {color:", cols, "}")
+              paste0(".tabbable > .nav > li > a[data-value='", interventions, "'] {color:", intervention_colours[interventions], "}")
             )
           ),
           # Intervention slider colours
-          shinyWidgets::setSliderColor(cols, 1:length(interventions)),
+          shinyWidgets::setSliderColor(intervention_colours[interventions], 1:length(interventions)),
           do.call(
             shiny::tabsetPanel,
             lapply(
               interventions,
               function(x){
                 shiny::tabPanel(
-                  x, mapUI(x, n_strata, available[x], coverage_choices[[x]], cols[x])
+                  x, mapUI(x, n_strata, available(choice_matrix, x), coverage_choices[[x]])
                 )
               }
             )
@@ -132,14 +121,15 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
     ),
     shiny::tabPanel(
       "Impact",
-      impactUI("impact")
+      impactUI(),
+      #shiny::downloadButton("download")
     )
   )
 
   server <- function(input, output, session) {
 
     # Initialise reactive values
-    rv <- shiny::reactiveVal(choice_matrix)
+    selection <- shiny::reactiveVal(choice_matrix)
     coverage <- shiny::reactiveVal(coverage)
 
     # Stratification map
@@ -163,9 +153,9 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
     })
     shiny::outputOptions(output, "intervention_mix_map", suspendWhenHidden = FALSE)
 
-    shiny::observeEvent(rv(), {
+    shiny::observeEvent(selection(), {
       update_intervention_mix_map(
-        rv = rv,
+        selection = selection,
         spatial = spatial,
         interventions = interventions,
         bbox = bounding_box,
@@ -178,20 +168,52 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
     for(i in interventions){
       mapServer(
         id = i,
-        rv = rv,
+        selection = selection,
         coverage = coverage,
         current_matrix = current_matrix,
         strata_matrix = strata_matrix,
-        col = cols[i],
-        spatial = spatial[spatial[["spatial_id"]] %in% unlist(available[[i]]),],
+        spatial = spatial[spatial[["spatial_id"]] %in% available(current_matrix, i),],
         bbox = bounding_box,
-        n_strata = n_strata,
         session
       )
     }
 
-    # Ipact
-    impactServer("impact", rv, coverage, df)
+    # Impact
+    shiny::observeEvent(input$impact_button, {
+      impact <- link(selection(), coverage() / 100, df)
+
+      time_series_plot <- reactive(
+        plot_time_series(
+          pd = impact,
+          maxy = max(df$inc)
+        )
+      )
+      output$time_series_plot <- shiny::renderPlot(
+        time_series_plot()
+      )
+
+      impact_plot <- reactive(
+        plot_impact(
+          pd = impact
+        )
+      )
+      output$impact_plot <- shiny::renderPlot(
+        impact_plot()
+      )
+      shinyjs::show("impact_plot")
+      shinyjs::show("time_series_plot")
+    })
+    shiny::observeEvent(selection() | coverage(), {
+      shinyjs::hide("time_series_plot")
+      shinyjs::hide("impact_plot")
+    })
+
+    output$download <- downloadHandler(
+      filename = ,
+      content = function(file) {
+      }
+    )
   }
+
   shiny::shinyApp(ui, server)
 }

@@ -64,7 +64,7 @@ df_mwi <- generate_data(mwi, "NAME_1")
 stratification_colours <- c("#33a52a", "#b7de8d", "#fe7e00", "#d21e24")
 names(stratification_colours) <- paste(1:4)
 
-intervention_colours <- c("#45b0cf","#855fce","#5ebe8b","#c65fb4","#c55a7f","#468045", "#7680c9")
+intervention_colours <- c("#855fce","#5ebe8b","#c65fb4","#c55a7f","#468045", "#7680c9")
 names(intervention_colours)[1:3] <- c("itn", "smc", "irs")
 
 intervention_mix_colours <- c("#D9D9D9", "#8DD3C7", "#BEBADA", "#FB8072", "#80B1D3", "#FDB462",

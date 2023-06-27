@@ -21,7 +21,8 @@ Imports:
     sf,
     shinyWidgets,
     shinyjs,
-    tidyr
+    tidyr,
+    rmarkdown
 RoxygenNote: 7.2.3
 Suggests: 
     roxygen2,

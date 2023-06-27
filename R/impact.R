@@ -1,7 +1,32 @@
+impactUI <- function(){
+  shiny::tagList(
+    shinyjs::useShinyjs(),
+    shiny::fluidRow(
+      shiny::br(),
+      shiny::column(
+        6,
+        shiny::actionButton("impact_button", "Generate impact report")
+      )
+    ),
+    shiny::fluidRow(
+      shiny::br(),
+      shiny::br(),
+      shiny::column(
+        6,
+        shiny::plotOutput("time_series_plot", width = "600px")
+      ),
+      shiny::column(
+        6,
+        shiny::plotOutput("impact_plot", width = "500px")
+      )
+    )
+  )
+}
+
 #' Impact plot
 #'
 #' @param pd plot data
-impact_plot <- function(pd){
+plot_impact <- function(pd){
   pd <- pd |>
     tidyr::pivot_wider(id_cols = "year", names_from = "scenario", values_from = "inc") |>
     dplyr::mutate(dif = 100 * (.data$bank - .data$bau) / .data$bau)
@@ -25,7 +50,7 @@ impact_plot <- function(pd){
 #'
 #' @param pd plot data
 #' @param maxy max y value
-time_series_plot <- function(pd, maxy){
+plot_time_series <- function(pd, maxy){
   ggplot2::ggplot(data = pd, ggplot2::aes(x = .data$year, y = .data$inc, col = .data$scenario)) +
     ggplot2::geom_line() +
     ggplot2::ylim(0, maxy) +

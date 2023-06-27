@@ -4,8 +4,8 @@
 #' @param n_strata Number of stratification levels
 #' @param admin_units spatial spatial unit names
 #' @param coverage_choices Reactive coverage choices
-#' @param col intervention colour
-mapUI <- function(id, n_strata, admin_units, coverage_choices, col){
+mapUI <- function(id, n_strata, admin_units, coverage_choices){
+  col <- intervention_colours[id]
   shiny::tagList(
     shiny::fluidRow(
       shiny::column(
@@ -58,16 +58,14 @@ mapUI <- function(id, n_strata, admin_units, coverage_choices, col){
 #' Map module server
 #'
 #' @param id Intervention ID
-#' @param rv Reactive values
+#' @param selection Reactive values
 #' @param coverage coverage reactive values
 #' @param current_matrix Current implemented areas
 #' @param strata_matrix Strata matrices
-#' @param col Intervention colour
 #' @param spatial Spatial data for intervention
-#' @param n_strata Number of stratification levels
 #' @param bbox Map bounding box
 #' @param session app session
-mapServer <- function(id, rv, coverage, current_matrix, strata_matrix, col, spatial, bbox, n_strata, session){
+mapServer <- function(id, selection, coverage, current_matrix, strata_matrix, spatial, bbox, session){
   shiny::moduleServer(id, function(input, output, session){
     spatial <- spatial
 
@@ -76,47 +74,47 @@ mapServer <- function(id, rv, coverage, current_matrix, strata_matrix, col, spat
       base_map(spatial, bbox)
     })
     shiny::outputOptions(output, "map", suspendWhenHidden = FALSE)
-    pal <- c("black", col)
+    pal <- c("black", intervention_colours[id])
     names(pal) <- NULL
 
     # Selecting or deselecting a clicked polygon
     shiny::observeEvent(input$map_shape_click, {
       new <- reverse(
-        mat = rv(),
+        mat = selection(),
         intervention = id,
         units = input$map_shape_click$id
       )
-      rv(new)
+      selection(new)
     })
     # Select all
     shiny::observeEvent(input$select_all, {
       new <- select(
-        mat = rv(),
+        mat = selection(),
         intervention = id,
         units = unique(spatial$spatial_id)
       )
-      rv(new)
+      selection(new)
     })
     # Select current
     shiny::observeEvent(input$select_current, {
-      new <- rv()
+      new <- selection()
       new[,id] <- current_matrix[,id]
-      rv(new)
+      selection(new)
     })
     # Clear selection
     shiny::observeEvent(input$clear_selection, {
       new <- clear(
-        mat = rv(),
+        mat = selection(),
         intervention = id
       )
-      rv(new)
+      selection(new)
     })
     # Strata selection
-    lapply(1:n_strata, function(x){
+    lapply(1:length(strata_matrix), function(x){
       shiny::observeEvent(input[[paste(x, "+")]], {
-        new <- rv()
+        new <- selection()
         new[,id] <- strata_matrix[[x]][,id]
-        rv(new)
+        selection(new)
       })
     })
     # List selection
@@ -124,19 +122,19 @@ mapServer <- function(id, rv, coverage, current_matrix, strata_matrix, col, spat
       # Only update when list is closed
       if (!(input$select_list_open)) {
         new <- clear(
-          mat = rv(),
+          mat = selection(),
           intervention = id
         ) |>
           select(
             intervention = id,
             units = input$select_list
           )
-        rv(new)
+        selection(new)
       }
     })
     # Update selections in list in background
-    shiny::observeEvent(rv(), {
-      picked <- implemented(mat = rv(), intervention = id)
+    shiny::observeEvent(selection(), {
+      picked <- implemented(mat = selection(), intervention = id)
       if(is.null(picked)){
         picked <- ""
       }
@@ -156,8 +154,8 @@ mapServer <- function(id, rv, coverage, current_matrix, strata_matrix, col, spat
     )
 
     # Update the map
-    shiny::observeEvent(rv(), {
-      fill <- pal[ifelse(spatial[["spatial_id"]] %in% implemented(rv(), id), 2, 1)]
+    shiny::observeEvent(selection(), {
+      fill <- pal[ifelse(spatial[["spatial_id"]] %in% implemented(selection(), id), 2, 1)]
       leaflet::leafletProxy("map") |>
         leaflet::addPolygons(
           data = spatial,
@@ -166,7 +164,7 @@ mapServer <- function(id, rv, coverage, current_matrix, strata_matrix, col, spat
           opacity = 1,
           fill = TRUE,
           weight = 1,
-          color = ~fill,
+          color = ~ fill,
           layerId = ~ spatial[["spatial_id"]]
         )
     })

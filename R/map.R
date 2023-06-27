@@ -66,18 +66,19 @@ intervention_mix_map <- function(spatial, bbox, mix_options, cols){
 
 #' Update the intervention mix map
 #'
-#' @param rv The reactive choice matrix
+#' @param selection The reactive choice matrix
 #' @param spatial The sf spatial data
 #' @param interventions Interventions vector
 #' @param bbox Bounding box for map
 #' @param mix_options Vector of possible intervention mixes
 #' @param cols Vector of mix option colours
-update_intervention_mix_map <- function(rv, spatial, interventions, bbox, mix_options, cols){
-  current_mix <- apply(rv(), 1, function(x){
-    if(sum(x) == 0){
+update_intervention_mix_map <- function(selection, spatial, interventions, bbox, mix_options, cols){
+
+  current_mix <- apply(selection(), 1, function(x){
+    if(sum(x, na.rm = TRUE) == 0){
       out <- "none"
     } else {
-      out <- paste(interventions[x], collapse = " + ")
+      out <- paste(interventions[x & !is.na(x)], collapse = " + ")
     }
     return(out)
   })

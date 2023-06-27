@@ -23,7 +23,7 @@ init_matrix <- function(units, interventions){
 
 #' Clear the intervention matrix for selected intervention and spatial unit
 #' combinations
-#' @param mat choice matix
+#' @param mat choice matrix
 #' @param intervention Intervention name
 #' @param units Vector of spatial unit names
 clear <- function(mat, intervention, units = NULL){
@@ -37,7 +37,7 @@ clear <- function(mat, intervention, units = NULL){
 
 #' Select the intervention matrix for selected intervention and spatial unit
 #' combinations
-#' @param mat choice matix
+#' @param mat choice matrix
 #' @param intervention Intervention name
 #' @param units Vector of spatial unit names
 select <- function(mat, intervention, units = NULL){
@@ -52,7 +52,7 @@ select <- function(mat, intervention, units = NULL){
 #' Reverse the intervention matrix for selected intervention and spatial unit
 #' combinations
 #'
-#' @param mat choice matix
+#' @param mat choice matrix
 #' @param intervention Intervention name
 #' @param units Vector of spatial unit names
 reverse <- function(mat, intervention, units = NULL){
@@ -65,10 +65,17 @@ reverse <- function(mat, intervention, units = NULL){
 }
 
 #' Pull out names of spatial units where an intervention is implemented
-#' @param mat choice matix
+#' @param mat choice matrix
 #' @param intervention Intervention name
 implemented <- function(mat, intervention){
-  rownames(mat)[mat[,intervention]]
+  rownames(mat)[mat[,intervention] & !is.na(mat[,intervention])]
+}
+
+#' Pull out names of spatial units where an intervention is available
+#' @param mat choice matrix
+#' @param intervention Intervention name
+available <- function(mat, intervention){
+  rownames(mat)[!is.na(mat[,intervention])]
 }
 
 #' Multiply the boolean choice matrix by the coverage vector
@@ -111,15 +118,18 @@ create_current_matrix <- function(df, units, interventions){
 }
 
 # Create the strata matrices
-create_strata_matrix <- function(df, units, interventions, available){
+create_strata_matrix <- function(df, current_matrix){
   n_strata <- max(df$strata)
+  interventions <- colnames(current_matrix)
+  units <- rownames(current_matrix)
+
   strata_mat <- lapply(1:n_strata, function(x){
     strata_mat <- init_matrix(
       units = units,
       interventions = interventions
     )
-    for(i in interventions){
-      to_select <- intersect(unique(df[df[["strata"]] >= x, ][["spatial_id"]]), available[[i]])
+    for(i in colnames(current_matrix)){
+      to_select <- intersect(unique(df[df[["strata"]] >= x, ][["spatial_id"]]), available(current_matrix, i))
       strata_mat <- select(strata_mat, i, to_select)
     }
     strata_mat
