@@ -1,28 +1,3 @@
-impactUI <- function(){
-  shiny::tagList(
-    shinyjs::useShinyjs(),
-    shiny::fluidRow(
-      shiny::br(),
-      shiny::column(
-        6,
-        shiny::actionButton("impact_button", "Generate impact report")
-      )
-    ),
-    shiny::fluidRow(
-      shiny::br(),
-      shiny::br(),
-      shiny::column(
-        6,
-        shiny::plotOutput("time_series_plot", width = "600px")
-      ),
-      shiny::column(
-        6,
-        shiny::plotOutput("impact_plot", width = "500px")
-      )
-    )
-  )
-}
-
 #' Impact plot
 #'
 #' @param pd plot data
@@ -38,12 +13,16 @@ plot_impact <- function(pd){
     ggplot2::geom_bar(stat = "identity", col = "black") +
     ggplot2::scale_fill_gradientn(colours = impact_colours) +
     ggplot2::scale_y_continuous(
-      name = "% Change vs BAU",
       breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100),
       labels = c("-100", "-75", "-50", "-25", "0", "25", "50", "75", "100 +"),
       limits = c(-100, 100)) +
-    ggplot2::theme_bw() +
-    ggplot2::guides(fill = "none")
+    ggplot2::guides(fill = "none") +
+    ggplot2::xlab("") +
+    ggplot2::ylab("") +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(panel.grid = ggplot2::element_blank(),
+                   legend.title = ggplot2::element_blank(),
+                   legend.position = "bottom")
 }
 
 #' Time series plot plot
@@ -52,7 +31,13 @@ plot_impact <- function(pd){
 #' @param maxy max y value
 plot_time_series <- function(pd, maxy){
   ggplot2::ggplot(data = pd, ggplot2::aes(x = .data$year, y = .data$inc, col = .data$scenario)) +
-    ggplot2::geom_line() +
+    ggplot2::geom_line(linewidth = 1.5) +
+    ggplot2::scale_colour_manual(values = c("orange", "grey40")) +
     ggplot2::ylim(0, maxy) +
-    ggplot2::theme_bw()
+    ggplot2::xlab("") +
+    ggplot2::ylab("") +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(panel.grid = ggplot2::element_blank(),
+                   legend.title = ggplot2::element_blank(),
+                   legend.position = c(0.1, 0.1))
 }

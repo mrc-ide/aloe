@@ -106,23 +106,29 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
       ),
       shiny::fluidRow(
         shiny::column(
-          6,
+          3,
           shiny::h4("Stratification map"),
           # Map of selected spatial units
           leaflet::leafletOutput("stratification_map"),
         ),
         shiny::column(
-          6,
+          3,
           shiny::h4("Intervention mix map"),
           # Map of intervention mix for spatial units
           leaflet::leafletOutput("intervention_mix_map"),
+        ),
+        shiny::column(
+          3,
+          shiny::h4("Cases"),
+          shiny::plotOutput("time_series_plot")
+        )
+        ,
+        shiny::column(
+          3,
+          shiny::h4("Change in cases"),
+          shiny::plotOutput("impact_plot")
         )
       )
-    ),
-    shiny::tabPanel(
-      "Impact",
-      impactUI(),
-      #shiny::downloadButton("download")
     )
   )
 
@@ -164,7 +170,7 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
       )
     })
 
-    # Map module
+    # Map intervention module
     for(i in interventions){
       mapServer(
         id = i,
@@ -179,7 +185,7 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
     }
 
     # Impact
-    shiny::observeEvent(input$impact_button, {
+    shiny::observeEvent(selection() | coverage(), {
       impact <- link(selection(), coverage() / 100, df)
 
       time_series_plot <- reactive(
@@ -200,12 +206,6 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
       output$impact_plot <- shiny::renderPlot(
         impact_plot()
       )
-      shinyjs::show("impact_plot")
-      shinyjs::show("time_series_plot")
-    })
-    shiny::observeEvent(selection() | coverage(), {
-      shinyjs::hide("time_series_plot")
-      shinyjs::hide("impact_plot")
     })
 
     output$download <- downloadHandler(

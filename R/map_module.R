@@ -79,6 +79,7 @@ mapServer <- function(id, selection, coverage, current_matrix, strata_matrix, sp
 
     # Selecting or deselecting a clicked polygon
     shiny::observeEvent(input$map_shape_click, {
+      browser()
       new <- reverse(
         mat = selection(),
         intervention = id,
