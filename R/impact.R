@@ -19,10 +19,18 @@ plot_impact <- function(pd){
     ggplot2::guides(fill = "none") +
     ggplot2::xlab("") +
     ggplot2::ylab("") +
+    ggplot2::scale_x_continuous(
+      breaks = function(x){
+        seq(floor(min(x)), ceiling(max(x)))
+      }) +
     ggplot2::theme_minimal() +
-    ggplot2::theme(panel.grid = ggplot2::element_blank(),
-                   legend.title = ggplot2::element_blank(),
-                   legend.position = "bottom")
+    ggplot2::theme(
+      axis.text =  ggplot2::element_text(size = 14),
+      axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust = 1),
+      panel.grid = ggplot2::element_blank(),
+      legend.title = ggplot2::element_blank(),
+      legend.position = "bottom"
+    )
 }
 
 #' Time series plot plot
@@ -36,8 +44,17 @@ plot_time_series <- function(pd, maxy){
     ggplot2::ylim(0, maxy) +
     ggplot2::xlab("") +
     ggplot2::ylab("") +
+    ggplot2::scale_x_continuous(
+      breaks = function(x){
+        seq(floor(min(x)), ceiling(max(x)))
+      }) +
     ggplot2::theme_minimal() +
-    ggplot2::theme(panel.grid = ggplot2::element_blank(),
-                   legend.title = ggplot2::element_blank(),
-                   legend.position = c(0.1, 0.1))
+    ggplot2::theme(
+      axis.text =  ggplot2::element_text(size = 14),
+      axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust = 1),
+      legend.text = ggplot2::element_text(size = 14),
+      panel.grid = ggplot2::element_blank(),
+      legend.title = ggplot2::element_blank(),
+      legend.position = c(0.1, 0.1),
+    )
 }

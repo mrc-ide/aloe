@@ -4,7 +4,7 @@
 #' @param n_strata Number of stratification levels
 #' @param admin_units spatial spatial unit names
 #' @param coverage_choices Reactive coverage choices
-mapUI <- function(id, n_strata, admin_units, coverage_choices){
+mapUI <- function(id, n_strata, admin_units, coverage_choices, coverage){
   col <- intervention_colours[id]
   shiny::tagList(
     shiny::fluidRow(
@@ -47,7 +47,8 @@ mapUI <- function(id, n_strata, admin_units, coverage_choices){
             choices = coverage_choices * 100,
             label = NULL,
             grid = TRUE,
-            hide_min_max = TRUE
+            hide_min_max = TRUE,
+            selected = coverage[id] * 100
           )
         )
       )
@@ -149,8 +150,7 @@ mapServer <- function(id, selection, coverage, current_matrix, strata_matrix, sp
       new_coverage <- coverage()
       new_coverage[id] <-input$coverage_slider
       coverage(new_coverage)
-    },
-    ignoreInit = TRUE
+    }
     )
 
     # Update the map

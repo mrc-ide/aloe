@@ -41,7 +41,7 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
   )
 
   # Coverage vector
-  coverage <- rep(0, length(interventions))
+  coverage <- apply(df[,interventions], 2, max)
   names(coverage) <- interventions
 
   coverage_choices <- lapply(interventions, function(x){
@@ -97,7 +97,7 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
               interventions,
               function(x){
                 shiny::tabPanel(
-                  x, mapUI(x, n_strata, available(choice_matrix, x), coverage_choices[[x]])
+                  x, mapUI(x, n_strata, available(choice_matrix, x), coverage_choices[[x]], coverage)
                 )
               }
             )
