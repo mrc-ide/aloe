@@ -95,6 +95,7 @@ link <- function(mat, coverage, df){
     scenario = "bank"
   )
   rownames(choice_df) <- NULL
+  choice_df[is.na(choice_df)] <- 0
 
   impact <- choice_df |>
     dplyr::left_join(df, by = colnames(choice_df)) |>
