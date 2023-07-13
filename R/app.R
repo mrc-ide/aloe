@@ -207,12 +207,6 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
         impact_plot()
       )
     })
-
-    output$download <- downloadHandler(
-      filename = ,
-      content = function(file) {
-      }
-    )
   }
 
   shiny::shinyApp(ui, server)
