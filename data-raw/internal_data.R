@@ -70,7 +70,7 @@ names(intervention_colours)[1:3] <- c("itn", "smc", "irs")
 intervention_mix_colours <- c("#D9D9D9", "#8DD3C7", "#BEBADA", "#FB8072", "#80B1D3", "#FDB462",
                               "#B3DE69", "#FCCDE5",  "#BC80BD", "#CCEBC5", "#FFED6F", "#FFFFB3")
 
-impact_colours <- rev(RColorBrewer::brewer.pal(10, "PiYG"))
+impact_colours <- c("#4D9221", "#B8E186", "#E6F5D0", "#FDE0EF", "#F1B6DA",  "#C51B7D")
 
 usethis::use_data(intervention_colours,
                   intervention_mix_colours,
