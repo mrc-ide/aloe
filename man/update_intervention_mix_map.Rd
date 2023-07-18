@@ -5,7 +5,7 @@
 \title{Update the intervention mix map}
 \usage{
 update_intervention_mix_map(
-  rv,
+  selection,
   spatial,
   interventions,
   bbox,
@@ -14,7 +14,7 @@ update_intervention_mix_map(
 )
 }
 \arguments{
-\item{rv}{The reactive choice matrix}
+\item{selection}{The reactive choice matrix}
 
 \item{spatial}{The sf spatial data}
 

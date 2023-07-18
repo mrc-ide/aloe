@@ -6,21 +6,19 @@
 \usage{
 mapServer(
   id,
-  rv,
+  selection,
   coverage,
   current_matrix,
   strata_matrix,
-  col,
   spatial,
   bbox,
-  n_strata,
   session
 )
 }
 \arguments{
 \item{id}{Intervention ID}
 
-\item{rv}{Reactive values}
+\item{selection}{Reactive values}
 
 \item{coverage}{coverage reactive values}
 
@@ -28,13 +26,9 @@ mapServer(
 
 \item{strata_matrix}{Strata matrices}
 
-\item{col}{Intervention colour}
-
 \item{spatial}{Spatial data for intervention}
 
 \item{bbox}{Map bounding box}
-
-\item{n_strata}{Number of stratification levels}
 
 \item{session}{app session}
 }

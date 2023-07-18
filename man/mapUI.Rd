@@ -4,7 +4,7 @@
 \alias{mapUI}
 \title{Map module UI}
 \usage{
-mapUI(id, n_strata, admin_units, coverage_choices, col)
+mapUI(id, n_strata, admin_units, coverage_choices, coverage)
 }
 \arguments{
 \item{id}{Intervention ID}
@@ -13,9 +13,9 @@ mapUI(id, n_strata, admin_units, coverage_choices, col)
 
 \item{admin_units}{spatial spatial unit names}
 
-\item{coverage_choices}{Reactive coverage choices}
+\item{coverage_choices}{Available coverage choices}
 
-\item{col}{intervention colour}
+\item{coverage}{Reactive coverage selection}
 }
 \description{
 Map module UI

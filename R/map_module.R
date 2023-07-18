@@ -3,7 +3,8 @@
 #' @param id Intervention ID
 #' @param n_strata Number of stratification levels
 #' @param admin_units spatial spatial unit names
-#' @param coverage_choices Reactive coverage choices
+#' @param coverage_choices Available coverage choices
+#' @param coverage Reactive coverage selection
 mapUI <- function(id, n_strata, admin_units, coverage_choices, coverage){
   col <- intervention_colours[id]
   shiny::tagList(

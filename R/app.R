@@ -25,7 +25,7 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
     units = units,
     interventions = interventions
   )
-  # Block unavailable interventions
+  # Block unavailable intervention-location combinations
   for(x in interventions){
     available <- unique(df[df[x] > 0 & df$scenario == "bank", "spatial_id"])
     current_matrix[!rownames(current_matrix) %in% available, x] <- NA
@@ -188,7 +188,7 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
     shiny::observeEvent(selection() | coverage(), {
       impact <- link(selection(), coverage() / 100, df)
 
-      time_series_plot <- reactive(
+      time_series_plot <- shiny::reactive(
         plot_time_series(
           pd = impact,
           maxy = max(df$inc)
@@ -198,7 +198,7 @@ app <- function(spatial = mwi, df = df_mwi, interventions = c("itn", "smc"), spa
         time_series_plot()
       )
 
-      impact_plot <- reactive(
+      impact_plot <- shiny::reactive(
         plot_impact(
           pd = impact
         )

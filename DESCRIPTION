@@ -20,8 +20,7 @@ Imports:
     rlang (>= 0.4.11),
     sf,
     shinyWidgets,
-    tidyr,
-    rmarkdown
+    tidyr
 RoxygenNote: 7.2.3
 Suggests: 
     roxygen2,

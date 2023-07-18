@@ -7,7 +7,7 @@
 implemented(mat, intervention)
 }
 \arguments{
-\item{mat}{choice matix}
+\item{mat}{choice matrix}
 
 \item{intervention}{Intervention name}
 }

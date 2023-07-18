@@ -8,7 +8,7 @@ combinations}
 clear(mat, intervention, units = NULL)
 }
 \arguments{
-\item{mat}{choice matix}
+\item{mat}{choice matrix}
 
 \item{intervention}{Intervention name}
 

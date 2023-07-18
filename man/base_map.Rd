@@ -9,7 +9,7 @@ base_map(spatial, bbox)
 \arguments{
 \item{spatial}{sf data}
 
-\item{bbox}{BOunding box extent}
+\item{bbox}{Bounding box extent}
 }
 \description{
 Render the base map layer

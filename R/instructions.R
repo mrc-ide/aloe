@@ -1,5 +1,5 @@
 instructionsUI <- shiny::tabPanel(
-  "Instructions",
+  "Overview",
   shiny::br(),
   shiny::h4("Interventions"),
   shiny::p("For each intervention choose where interventions are implemented"),

@@ -1,7 +1,7 @@
 #' Render the base map layer
 #'
 #' @param spatial sf data
-#' @param bbox BOunding box extent
+#' @param bbox Bounding box extent
 base_map <- function(spatial, bbox){
   leaflet::leaflet() |>
     leaflet::addTiles() |>
